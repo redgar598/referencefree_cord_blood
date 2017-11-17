@@ -19,7 +19,12 @@ fillscale <- scale_fill_manual(name="Method",
                                values = myColors, drop = T)
 
 
-### Figure 1 (R2 plot)
+
+
+
+
+
+###################### Figure 1 (R2 plot)
 load("/big_data/redgar/cordblood/Count_like_data.Rdata")
 facs_counts<-read.csv("/big_data/redgar/cordblood/Updated_counts_WB_validation.csv")
 

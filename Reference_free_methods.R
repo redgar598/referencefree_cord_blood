@@ -121,7 +121,7 @@ mod0 = model.matrix(~1, data.frame(meta_cord$GA))
 svobj = sva(as.matrix(mval_diff_celltype),mod,mod0,n.sv=5)
 sv_sup_gestage<-svobj$sv
 
-################### RUV
+################### RUV GA
 library(missMethyl)
 load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
 
@@ -136,7 +136,50 @@ save(sv_unsup_gestage, sv_sup_gestage, ruv_GA, file="/big_data/redgar/cordblood/
 
 
 
+
+################### SVA Sex
+#Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
+library(sva)
+
+#Null model matrix must be nested in the full model matrix
+mod = model.matrix(~meta_cord$Sex)
+mod0 = model.matrix(~1, data.frame(meta_cord$Sex))
+
+## surrogates
+svobj = sva(as.matrix(mval_complete),mod,mod0,n.sv=5)
+sv_unsup_sex<-svobj$sv
+
+################### SVA supervised Sex
+#Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
+library(sva)
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+mval_diff_celltype<-mval_complete[which(rownames(mval_complete)%in%diff_cpgs$CpG),]
+
+#Null model matrix must be nested in the full model matrix
+mod = model.matrix(~meta_cord$Sex)
+mod0 = model.matrix(~1, data.frame(meta_cord$Sex))
+
+## surrogates
+svobj = sva(as.matrix(mval_diff_celltype),mod,mod0,n.sv=5)
+sv_sup_sex<-svobj$sv
+
+################### RUV sex
+library(missMethyl)
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+
+# which probes define cell type
+ctl<-(rownames(mval_complete)%in%diff_cpgs$CpG)
+
+fit = RUVfit(data=mval_complete, design=as.numeric(meta_cord$Sex),  ctl=ctl, k=5, method=c("ruv4"))
+ruv_sex<-t(fit$W)
+
+save(sv_unsup_sex, sv_sup_sex, ruv_sex, file="/big_data/redgar/cordblood/Components_sex.Rdata")
+
+
+
+
 ##############################################################################################################################
+#### Correction
 ##############################################################################################################################
 load("/big_data/redgar/cordblood/Count_like_data.Rdata")
 ################## Corrected Betas reffreecellmix
@@ -223,5 +266,56 @@ adj.residuals.ruv.ga <- residuals+matrix(apply(beta_complete, 1, mean), nrow = n
 save(adj.residuals.ruv.ga,file="/big_data/redgar/cordblood/adj.residuals_ruv.ga.Rdata")
 
 rm(adj.residuals.ruv.ga)
+rm(betas.lm)
+gc()
+
+
+
+#####################
+load("/big_data/redgar/cordblood/Components_sex.Rdata")
+
+
+##################### Corrected Betas SVA unsup sex
+sv_unsup_sex<-as.data.frame(sv_unsup_sex)
+rownames(sv_unsup_sex)<-colnames(beta_complete)
+betas.lm <- apply(beta_complete, 1, function(x){
+  lm(x~V1+V2+V3+V4+V5+0,data=sv_unsup_sex) 
+})
+residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
+colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
+adj.residuals.sva.unsup.sex <- residuals+matrix(apply(beta_complete, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
+save(adj.residuals.sva.unsup.sex,file="/big_data/redgar/cordblood/adj.residuals_sva.unsup.sex.Rdata")
+
+rm(adj.residuals.sva.unsup.sex)
+rm(betas.lm)
+gc()
+
+##################### Corrected Betas SVA sup sex
+sv_sup_sex<-as.data.frame(sv_sup_sex)
+rownames(sv_sup_sex)<-colnames(beta_complete)
+betas.lm <- apply(beta_complete, 1, function(x){
+  lm(x~V1+V2+V3+V4+V5+0,data=sv_sup_sex) 
+})
+residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
+colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
+adj.residuals.sva.sup.sex <- residuals+matrix(apply(beta_complete, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
+save(adj.residuals.sva.sup.sex,file="/big_data/redgar/cordblood/adj.residuals_sva.sup.sex.Rdata")
+
+rm(adj.residuals.sva.sup.sex)
+rm(betas.lm)
+gc()
+
+##################### Corrected Betas RUV sex
+ruv_sex<-as.data.frame(ruv_sex)
+rownames(ruv_sex)<-colnames(beta_complete)
+betas.lm <- apply(beta_complete, 1, function(x){
+  lm(x~V1+V2+V3+V4+V5+0,data=ruv_sex) 
+})
+residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
+colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
+adj.residuals.ruv.sex <- residuals+matrix(apply(beta_complete, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
+save(adj.residuals.ruv.sex,file="/big_data/redgar/cordblood/adj.residuals_ruv.sex.Rdata")
+
+rm(adj.residuals.ruv.sex)
 rm(betas.lm)
 gc()
