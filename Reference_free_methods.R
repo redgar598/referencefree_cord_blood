@@ -32,9 +32,8 @@
 ##########################################################################################################################
 
 ## load in testing data
-library(methylumi)
-load("/big_data/redgar/cordblood/2017.10.17_WB_BMIQnorm_combat.rdata")
-beta<-betas(WB.bat)
+load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
+beta<-as.data.frame(validation_betas.combat)
 
 library(ggplot2)
 library(reshape)
@@ -65,7 +64,7 @@ beta_complete <- t(apply(beta,1, NA2med))
 ## load meta data
 meta_cord<-read.csv("/big_data/redgar/cordblood/24_wholebloods_samplesheet.csv")
 meta_cord<-meta_cord[match(colnames(beta), meta_cord$X),]
-identical(colnames(beta), as.character(meta_cord$X))
+identical(colnames(beta_complete), as.character(meta_cord$X))
 
               
 ################# RefFreeCellMix
