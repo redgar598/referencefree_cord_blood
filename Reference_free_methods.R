@@ -28,7 +28,7 @@
               
               install.packages("ggsci")
               install.packages("hydroGOF")
-              
+
 
 
 ##########################################################################################################################
@@ -240,6 +240,12 @@ save(adj.residuals.refactor,file="/big_data/redgar/cordblood/adj.residuals_refac
 rm(adj.residuals.refactor)
 rm(betas.lm)
 gc()
+
+
+
+#####################
+load("/big_data/redgar/cordblood/Components_GA.Rdata")
+
 
 ##################### Corrected Betas SVA unsup GA
 sv_unsup_ga<-as.data.frame(sv_unsup_gestage)
