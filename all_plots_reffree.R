@@ -1,18 +1,19 @@
 #define consistent color scheme for methods
 library(ggsci)
 myColors <- c("gold","goldenrod",
-              "#2171b5","#6baed6",
+              "#2171b5","#6baed6","#6baed6",
               "#9467BDFF","#D62728FF",
               "#238443","#78c679","#addd8e","#d9f0a3",
-              "#dd3497","#fa9fb5")
+              "#dd3497","#fa9fb5","grey")
 show_col(myColors)
 
 color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
-                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type",
+                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
                        "ReFACTor","RefFreeCellMix",
                        "SVA - Supervised GA","SVA - Unsupervised GA",
                        "SVA - Supervised Sex","SVA - Unsupervised Sex",
-                       "RUV - GA", "RUV - Sex")
+                       "RUV - GA", "RUV - Sex",
+                       "Uncorrected")
 
 names(myColors) <- color_possibilities
 fillscale <- scale_fill_manual(name="Method",
@@ -382,7 +383,7 @@ refactor_R2_plt$method<-"ReFACTor"
 facs_PCA_R2_plt<-facs_PCA_R2[,1:2]
 facs_PCA_R2_plt$method<-"FACS - PCA - Gold-Standard"
 deconcounts_R2_plt<-deconcounts_R2[,1:2]
-deconcounts_R2_plt$method<-"Deconvolution - Drop One Cell Type"
+deconcounts_R2_plt$method<-"Deconvolution - Counts"
 deconPCA_R2_plt<-deconPCA_R2[,1:2]
 deconPCA_R2_plt$method<-"Deconvolution - PCA"
 ruv_GA_R2_plt<-ruv_GA_R2[,1:2]
