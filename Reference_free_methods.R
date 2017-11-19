@@ -47,8 +47,7 @@ Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na
 beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
 Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
 invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #109841/114204 (96.1%)
-Betas_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#325266 
-beta<-Betas_variable 
+beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#325266 
 
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
@@ -56,15 +55,25 @@ mval = apply(as.data.frame(beta), 1, Mval) # need mvalues for combat
 mval = as.data.frame(mval)
 mval = t(mval)
 
+mval_variable = apply(as.data.frame(beta_variable), 1, Mval) # need mvalues for combat
+mval_variable = as.data.frame(mval_variable)
+mval_variable = t(mval_variable)
+
 ## impute missing mval with row median
 NA2med <- function(x) replace(x, is.na(x), median(x, na.rm = TRUE))
 mval_complete <- t(apply(mval,1, NA2med))
 beta_complete <- t(apply(beta,1, NA2med))
+beta_variable<-t(apply(beta_variable,1, NA2med))
+mval_variable<-t(apply(mval_variable,1, NA2med))
+
 
 ## load meta data
 meta_cord<-read.csv("/big_data/redgar/cordblood/24_wholebloods_samplesheet.csv")
 meta_cord<-meta_cord[match(colnames(beta), meta_cord$X),]
-identical(colnames(beta_complete), as.character(meta_cord$X))
+identical(colnames(beta_variable), as.character(meta_cord$X))
+
+
+
 
               
 ################# RefFreeCellMix
@@ -72,14 +81,14 @@ library(RefFreeEWAS)
 #Kˆ=3K^=3 for the cord blood data set BL-as, larger for the other three peripheral blood datasets
 # We performed reference-free deconvolution with the method RefFreeCellMix by Houseman et al. [42] using the R package RefFreeEWAS. In accordance with the original publication of the method [42], we applied it to the 20,000 most variable CpG positions from the methylation matrix, unless the total number of rows was less, in which case we used the full matrix. In the former case, we used the available option to obtain the estimates of the methylation components for all CpGs as the final step of the deconvolution procedure (supplying the complete data matrix as argument Yfinal).
 
-testArray1 <- RefFreeCellMix(as.matrix(beta_complete),K=5,iters=5,Yfinal=NULL)#verbose=T
+testArray1 <- RefFreeCellMix(as.matrix(beta_variable),K=5,iters=5,Yfinal=NULL)#verbose=T
 RefFreeCounts<-as.data.frame(testArray1$Omega)
 
 
 ################### ReFACTor
 #https://github.com/cozygene/refactor/tree/master/R
 source("/big_data/redgar/cordblood/refactor.R")
-        beta_df<-as.data.frame(beta_complete)
+        beta_df<-as.data.frame(beta_variable)
         beta_df$ID<-rownames(beta_df)
         beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
         write.table(beta_df, file="/big_data/redgar/cordblood/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
@@ -103,14 +112,14 @@ mod = model.matrix(~meta_cord$GA)
 mod0 = model.matrix(~1, data.frame(meta_cord$GA))
 
 ## surrogates
-svobj = sva(as.matrix(mval_complete),mod,mod0,n.sv=5)
+svobj = sva(as.matrix(mval_variable),mod,mod0,n.sv=5)
 sv_unsup_gestage<-svobj$sv
 
 ################### SVA supervised GA
 #Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
 library(sva)
 load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
-mval_diff_celltype<-mval_complete[which(rownames(mval_complete)%in%diff_cpgs$CpG),]
+mval_diff_celltype<-mval_variable[which(rownames(mval_variable)%in%diff_cpgs$CpG),]
 
 #Null model matrix must be nested in the full model matrix
 mod = model.matrix(~meta_cord$GA)
@@ -125,9 +134,9 @@ library(missMethyl)
 load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
 
 # which probes define cell type
-ctl<-(rownames(mval_complete)%in%diff_cpgs$CpG)
+ctl<-(rownames(mval_variable)%in%diff_cpgs$CpG)
 
-fit = RUVfit(data=mval_complete, design=meta_cord$GA,  ctl=ctl, k=5, method=c("ruv4"))
+fit = RUVfit(data=mval_variable, design=meta_cord$GA,  ctl=ctl, k=5, method=c("ruv4"))
 ruv_GA<-t(fit$W)
 
 save(sv_unsup_gestage, sv_sup_gestage, ruv_GA, file="/big_data/redgar/cordblood/Components_GA.Rdata")
@@ -145,14 +154,14 @@ mod = model.matrix(~meta_cord$Sex)
 mod0 = model.matrix(~1, data.frame(meta_cord$Sex))
 
 ## surrogates
-svobj = sva(as.matrix(mval_complete),mod,mod0,n.sv=5)
+svobj = sva(as.matrix(mval_variable),mod,mod0,n.sv=5)
 sv_unsup_sex<-svobj$sv
 
 ################### SVA supervised Sex
 #Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
 library(sva)
 load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
-mval_diff_celltype<-mval_complete[which(rownames(mval_complete)%in%diff_cpgs$CpG),]
+mval_diff_celltype<-mval_variable[which(rownames(mval_variable)%in%diff_cpgs$CpG),]
 
 #Null model matrix must be nested in the full model matrix
 mod = model.matrix(~meta_cord$Sex)
@@ -167,9 +176,9 @@ library(missMethyl)
 load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
 
 # which probes define cell type
-ctl<-(rownames(mval_complete)%in%diff_cpgs$CpG)
+ctl<-(rownames(mval_variable)%in%diff_cpgs$CpG)
 
-fit = RUVfit(data=mval_complete, design=as.numeric(meta_cord$Sex),  ctl=ctl, k=5, method=c("ruv4"))
+fit = RUVfit(data=mval_variable, design=as.numeric(meta_cord$Sex),  ctl=ctl, k=5, method=c("ruv4"))
 ruv_sex<-t(fit$W)
 
 save(sv_unsup_sex, sv_sup_sex, ruv_sex, file="/big_data/redgar/cordblood/Components_sex.Rdata")
@@ -201,6 +210,10 @@ adj.residuals.reffreecellmix <- residuals+matrix(apply(beta_complete, 1, mean), 
 # adj.residuals.reffreecellmix[adj.residuals.reffreecellmix>1] <- 0.999 # convert any values that are greater than 1 to 0.999
 save(adj.residuals.reffreecellmix,file="/big_data/redgar/cordblood/adj.residuals_reffreecellmix.Rdata")
 
+rm(adj.residuals.reffreecellmix)
+rm(betas.lm)
+gc()
+
 
 
 ##################### Corrected Betas refactor
@@ -222,6 +235,9 @@ adj.residuals.refactor <- residuals+matrix(apply(beta_complete, 1, mean), nrow =
 # adj.residuals.refactor[adj.residuals.refactor>1] <- 0.999 # convert any values that are greater than 1 to 0.999
 save(adj.residuals.refactor,file="/big_data/redgar/cordblood/adj.residuals_refactor.Rdata")
 
+rm(adj.residuals.refactor)
+rm(betas.lm)
+gc()
 
 ##################### Corrected Betas SVA unsup GA
 sv_unsup_ga<-as.data.frame(sv_unsup_gestage)
