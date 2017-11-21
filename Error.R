@@ -316,70 +316,102 @@ gold_standard<-as.data.frame(adj.residuals)
 
 ## Decon PCA
 load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
-cor_GS<-cor_GS(adj.residuals, "Deconvolution - PCA")
+cor_to_GS<-cor_GS(adj.residuals, "Deconvolution - PCA")
 
 ## Decon counts
 load("/big_data/reffree/decon_corrected_betas.Rdata")
 err<-cor_GS(adj.residuals, "Deconvolution - Drop One Cell Type")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 
 ## FACS PCA
 load("/big_data/reffree/facs_corrected_betas.Rdata")
 err<-cor_GS(adj.residuals, "FACS - Drop One Cell Type")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 
 ## Uncorrected
 load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
 err<-cor_GS(validation_betas.combat, "Uncorrected")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 
 ## Refactor
 load("/big_data/reffree/adj.residuals_refactor.Rdata")
 err<-cor_GS(adj.residuals.refactor, "ReFACTor")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.refactor)
 
 ## reffreecellmix
 load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
 err<-cor_GS(adj.residuals.reffreecellmix, "RefFreeCellMix")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.reffreecellmix)
 
 ## RUV GA
 load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
 err<-cor_GS(adj.residuals.ruv.ga, "RUV - GA")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.ruv.ga)
 
 ## RUV sex
 load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
 err<-cor_GS(adj.residuals.ruv.sex, "RUV - Sex")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.ruv.sex)
 
 ## SVA - Supervised GA 
 load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
 err<-cor_GS(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.sup.ga)
 
 ## SVA - Unsupervised GA 
 load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
 err<-cor_GS(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.unsup.ga)
 
 ## SVA - Supervised Sex 
 load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
 err<-cor_GS(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.sup.sex)
 
 ## SVA - Unsupervised Sex 
 load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
 err<-cor_GS(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
-cor_GS<-rbind(cor_GS, err)
+cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.unsup.sex)
 
-save(cor_GS, file="~/referencefree_cord_blood/correlation_distributions.RData")
+save(cor_to_GS, file="~/referencefree_cord_blood/correlation_distributions.RData")
+
+library(ggridges)
+load("~/referencefree_cord_blood/correlation_distributions.RData")
+
+#define consistent color scheme for methods
+library(ggsci)
+myColors <- c("gold","goldenrod",
+              "#2171b5","#6baed6","#6baed6",
+              "#9467BDFF","#D62728FF",
+              "#238443","#78c679","#addd8e","#d9f0a3",
+              "#dd3497","#fa9fb5","grey")
+
+color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
+                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
+                       "ReFACTor","RefFreeCellMix",
+                       "SVA - Supervised GA","SVA - Unsupervised GA",
+                       "SVA - Supervised Sex","SVA - Unsupervised Sex",
+                       "RUV - GA", "RUV - Sex",
+                       "Uncorrected")
+
+names(myColors) <- color_possibilities
+fillscale <- scale_fill_manual(name="Method",
+                               values = myColors, drop = T)
+
+decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
+
+ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
+  geom_density_ridges(scale = 4) + theme_ridges() +
+fillscale   +xlab("CpG Correlation to Gold Stanndard Betas")+ylab("")+
+  geom_vline(xintercept=decon_med_cor, color="#2171b5", size=1)
+
+ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
 

@@ -28,6 +28,9 @@
               
               install.packages("ggsci")
               install.packages("hydroGOF")
+              
+              
+              install.packages("ggridges")
 
 
 
