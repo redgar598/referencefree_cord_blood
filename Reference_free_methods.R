@@ -197,7 +197,7 @@ colnames(RefFreeCounts)<-paste("comp", colnames(RefFreeCounts), sep="")
 
 betas.lm <- apply(beta_complete, 1, function(x){
   components <- RefFreeCounts[colnames(beta_complete),]
-  lm(x~comp1+comp2+comp3+comp4+comp5+0,data=components) 
+  lm(x~comp1+comp2+comp3+comp4+comp5,data=components) 
 })
 
 # extract matrix of residuals from resulting linear models
@@ -222,7 +222,7 @@ gc()
 rownames(RC)<-colnames(beta_complete)
 
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~PC1+PC2+PC3+PC4+PC5+0,data=RC) 
+  lm(x~PC1+PC2+PC3+PC4+PC5,data=RC) 
 })
 
 # extract matrix of residuals from resulting linear models
@@ -251,7 +251,7 @@ load("/big_data/redgar/cordblood/Components_GA.Rdata")
 sv_unsup_ga<-as.data.frame(sv_unsup_gestage)
 rownames(sv_unsup_ga)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=sv_unsup_ga) 
+  lm(x~V1+V2+V3+V4+V5,data=sv_unsup_ga) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
@@ -266,7 +266,7 @@ gc()
 sv_sup_ga<-as.data.frame(sv_sup_gestage)
 rownames(sv_sup_ga)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=sv_sup_ga) 
+  lm(x~V1+V2+V3+V4+V5,data=sv_sup_ga) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
@@ -281,7 +281,7 @@ gc()
 ruv_GA<-as.data.frame(ruv_GA)
 rownames(ruv_GA)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=ruv_GA) 
+  lm(x~V1+V2+V3+V4+V5,data=ruv_GA) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
@@ -302,7 +302,7 @@ load("/big_data/redgar/cordblood/Components_sex.Rdata")
 sv_unsup_sex<-as.data.frame(sv_unsup_sex)
 rownames(sv_unsup_sex)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=sv_unsup_sex) 
+  lm(x~V1+V2+V3+V4+V5,data=sv_unsup_sex) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
@@ -317,7 +317,7 @@ gc()
 sv_sup_sex<-as.data.frame(sv_sup_sex)
 rownames(sv_sup_sex)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=sv_sup_sex) 
+  lm(x~V1+V2+V3+V4+V5,data=sv_sup_sex) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names
@@ -332,7 +332,7 @@ gc()
 ruv_sex<-as.data.frame(ruv_sex)
 rownames(ruv_sex)<-colnames(beta_complete)
 betas.lm <- apply(beta_complete, 1, function(x){
-  lm(x~V1+V2+V3+V4+V5+0,data=ruv_sex) 
+  lm(x~V1+V2+V3+V4+V5,data=ruv_sex) 
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_complete) # re-name residuals columns with sample names

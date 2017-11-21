@@ -1,18 +1,12 @@
-
-##RMSE
+###############################################################################################
+##MAE
+###############################################################################################
 library(hydroGOF)
 
 
 ## load GS
 load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
 gold_standard<-as.data.frame(adj.residuals)
-
-# ## function to get RMSE to each dataframe
-# method_RMSE<-function(adj.res, method_name){
-#   metod_beta<-as.data.frame(adj.res)
-#   cpg_rmse<-rmse(t(gold_standard), t(metod_beta))
-#   data.frame(method=method_name, mn_cpg_rmse=mean(cpg_rmse))
-# }
 
 ## function to get MAE for each dataframe
 method_MAE<-function(adj.res, method_name){
@@ -124,6 +118,11 @@ MSE_compare_all<-function(betas, method2_name){
       metod_beta<-as.data.frame(adj.res)
       cpg_mae<-mae(t(metod_beta),t(betas))
       data.frame(method_1=method_name,method_2=method2_name, mn_cpg_mae=mean(cpg_mae))
+    }
+    
+    method_MAE_all<-function(adj.res, method_name){
+      metod_beta<-as.data.frame(adj.res)
+      mae(t(metod_beta),t(betas))
     }
     
     
@@ -296,3 +295,190 @@ ggplot(error_all, aes(method_1,method_2, fill = mn_cpg_mae)) +
   scale_fill_continuous(limits=c(0, 0.55), low="#c6dbef", high="#4292c6")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+ggsave("figures/mae.pdf", width = 8, height = 7, units = "in")
+
+
+
+
+###############################################################################################
+## Correlation
+###############################################################################################
+
+MSE_compare_all<-function(betas, method2_name){
+  
+cor(gold_standard[,1],adj.residuals[,1])
+  
+cor(gold_standard[,1],adj.residuals.reffreecellmix[,1])
+
+cpg_cor<-sapply(1:nrow(gold_standard), function(x){
+  cor(as.numeric(gold_standard[x,]),adj.residuals.refactor[x,])})
+
+  
+  ## load GS
+  load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
+  gold_standard<-as.data.frame(adj.residuals)
+  error_GS<-method_MAE(gold_standard, "FACS - PCA - Gold-Standard")
+  
+  ## Decon PCA
+  load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
+  err<-method_MAE(adj.residuals, "Deconvolution - PCA")
+  error_GS<-rbind(error_GS, err)
+  
+  ## Decon counts
+  load("/big_data/reffree/decon_corrected_betas.Rdata")
+  err<-method_MAE(adj.residuals, "Deconvolution - Drop One Cell Type")
+  error_GS<-rbind(error_GS, err)
+  
+  ## FACS PCA
+  load("/big_data/reffree/facs_corrected_betas.Rdata")
+  err<-method_MAE(adj.residuals, "FACS - Drop One Cell Type")
+  error_GS<-rbind(error_GS, err)
+  
+  
+  ## Uncorrected
+  load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
+  err<-method_MAE(validation_betas.combat, "Uncorrected")
+  error_GS<-rbind(error_GS, err)
+  
+  ## Refactor
+  load("/big_data/reffree/adj.residuals_refactor.Rdata")
+  err<-method_MAE(adj.residuals.refactor, "ReFACTor")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.refactor)
+  
+  ## reffreecellmix
+  load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
+  err<-method_MAE(adj.residuals.reffreecellmix, "RefFreeCellMix")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.reffreecellmix)
+  
+  ## RUV GA
+  load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
+  err<-method_MAE(adj.residuals.ruv.ga, "RUV - GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.ruv.ga)
+  
+  ## RUV sex
+  load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
+  err<-method_MAE(adj.residuals.ruv.sex, "RUV - Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.ruv.sex)
+  
+  
+  
+  ## SVA - Supervised GA 
+  load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
+  err<-method_MAE(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.sup.ga)
+  
+  ## SVA - Unsupervised GA 
+  load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
+  err<-method_MAE(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.unsup.ga)
+  
+  ## SVA - Supervised Sex 
+  load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
+  err<-method_MAE(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.sup.sex)
+  
+  ## SVA - Unsupervised Sex 
+  load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
+  err<-method_MAE(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.unsup.sex)
+  
+  error_GS}
+
+load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.unsup.sex)
+MSE_compare_all(method_adj, "SVA - Unsupervised Sex")
+
+
+## GS
+load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+error_all<-MSE_compare_all(method_adj, "FACS - PCA - Gold-Standard")
+
+## Decon PCA
+load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-MSE_compare_all(method_adj, "Deconvolution - PCA")
+error_all<-rbind(error_all, err)
+
+## Decon counts
+load("/big_data/reffree/decon_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-MSE_compare_all(method_adj, "Deconvolution - Drop One Cell Type")
+error_all<-rbind(error_all, err)
+
+## FACS PCA
+load("/big_data/reffree/facs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-MSE_compare_all(method_adj, "FACS - Drop One Cell Type")
+error_all<-rbind(error_all, err)
+
+## Uncorrected
+load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
+method_adj<-as.data.frame(validation_betas.combat)
+err<-MSE_compare_all(method_adj, "Uncorrected")
+error_all<-rbind(error_all, err)
+
+## Refactor
+load("/big_data/reffree/adj.residuals_refactor.Rdata")
+method_adj<-as.data.frame(adj.residuals.refactor)
+err<-MSE_compare_all(method_adj, "ReFACTor")
+error_all<-rbind(error_all, err)
+
+## reffreecellmix
+load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
+method_adj<-as.data.frame(adj.residuals.reffreecellmix)
+err<-MSE_compare_all(method_adj, "RefFreeCellMix")
+error_all<-rbind(error_all, err)
+
+## RUV GA
+load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.ruv.ga)
+err<-MSE_compare_all(method_adj, "RUV - GA")
+error_all<-rbind(error_all, err)
+
+## RUV sex
+load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.ruv.sex)
+err<-MSE_compare_all(method_adj, "RUV - Sex")
+error_all<-rbind(error_all, err)
+
+## SVA - Supervised GA 
+load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.sup.ga)
+err<-MSE_compare_all(method_adj, "SVA - Supervised GA")
+error_all<-rbind(error_all, err)
+
+## SVA - Unsupervised GA 
+load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.unsup.ga)
+err<-MSE_compare_all(method_adj, "SVA - Unsupervised GA")
+error_all<-rbind(error_all, err)
+
+## SVA - Supervised Sex 
+load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.sup.sex)
+err<-MSE_compare_all(method_adj, "SVA - Supervised Sex")
+error_all<-rbind(error_all, err)
+
+## SVA - Unsupervised Sex 
+load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.unsup.sex)
+err<-MSE_compare_all(method_adj, "SVA - Unsupervised Sex")
+error_all<-rbind(error_all, err)
+
+library(ggplot2)
+ggplot(error_all, aes(method_1,method_2, fill = mn_cpg_mae)) +
+  geom_tile(color = "black",size=0.5) +
+  geom_text(aes(label = round(mn_cpg_mae,3)), color="black")+theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        panel.background = element_blank(), axis.line = element_blank())+
+  scale_fill_continuous(limits=c(0, 0.55), low="#c6dbef", high="#4292c6")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))

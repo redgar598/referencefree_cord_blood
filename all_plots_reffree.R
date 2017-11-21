@@ -5,7 +5,6 @@ myColors <- c("gold","goldenrod",
               "#9467BDFF","#D62728FF",
               "#238443","#78c679","#addd8e","#d9f0a3",
               "#dd3497","#fa9fb5","grey")
-show_col(myColors)
 
 color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
                        "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
@@ -225,50 +224,22 @@ facs_PCA_R2<-do.call(rbind, facsPCA_R2)
 
 
 ########## Deconvolution counts
+## this one just get the R2 fr each predicted cell type to its facs actual
 est_cell_counts<-as.data.frame(est_cell_counts)
 facs_count<-as.data.frame(facs_counts)
-deconcounts_R2<-lapply(1:ncol(facs_counts), function(type){
-  countscombo<-as.data.frame(cbind(facs_counts[,type], est_cell_counts))
-  colnames(countscombo)<-c("facs_count", colnames(est_cell_counts))
-  
-  components <- colnames(est_cell_counts)
-  
-  ## PC pval
-  comp1_PC<-summary(lm(facs_count ~ 1+ Gran, data=countscombo))$coef[2,4]
-  
-  ## likelihood ratio test for refactor
-  #x 1:5
-  lrt<-function(x){
-    form0<-as.formula(paste(c("facs_count ~ 1", components[0:(x-1)]), collapse=" + "))
-    form1<-as.formula(paste(c("facs_count ~ 1", components[0:x]), collapse=" + "))
-    
-    mod0<-lm(form0, data=countscombo)
-    mod1<-lm(form1, data=countscombo)
-    
-    lrtmod<-lrtest(mod1, mod0)
-    lrtmod$`Pr(>Chisq)`[2]}
-  
-  
-  lrtp_comp<-data.frame(component=components, lrtpval=c(comp1_PC,lrt(2),lrt(3),lrt(4),lrt(5),lrt(6),lrt(7)))
-  
-  fitcomponenets<-as.character(lrtp_comp$component[which(lrtp_comp$lrtpval<0.05)])
-  
-  formbest<-as.formula(paste(c("facs_count ~ 1", fitcomponenets), collapse=" + "))
-  formoverfit<-as.formula(paste(c("facs_count ~ 1", components), collapse=" + "))
-  
-  ## now that you have the number of compenents to fit, get the r2 for the overfit and correctly fit model
-  # still want the overfit model because that is realistic to refactor recommeded settings for a user with no FACS
-  
-  mod_lrt<-lm(formbest, data=countscombo)
-  mod_overfit<-lm(formoverfit, data=countscombo)
-  
-  data.frame(facs_celltype=colnames(facs_counts)[type], R2_LRT=summary(mod_lrt)$r.squared,R2_overfit=summary(mod_overfit)$r.squared, components=paste(fitcomponenets, collapse=", "))
-  
-})
 
-deconcounts_R2<-do.call(rbind, deconcounts_R2)
+Monocytes<-summary(lm(facs_count$Monocytes ~ 1+ est_cell_counts$Mono))$r.squared
+gran<-summary(lm(facs_count$Granulocytes ~ 1+ est_cell_counts$Gran))$r.squared
+nRBCs<-summary(lm(facs_count$nRBCs ~ 1+ est_cell_counts$nRBC))$r.squared
+NK.cells<-summary(lm(facs_count$NK.cells ~ 1+ est_cell_counts$NK))$r.squared
+B.cells<-summary(lm(facs_count$B.cells ~ 1+ est_cell_counts$Bcell))$r.squared
+CD4Tcells<-summary(lm(facs_count$CD4..T.cells ~ 1+ est_cell_counts$CD4T))$r.squared
+CD8Tcells<-summary(lm(facs_count$CD4..T.cells ~ 1+ est_cell_counts$CD8T))$r.squared
 
 
+deconcounts_R2<-data.frame(facs_celltype=colnames(facs_count), 
+                           R2_LRT=c(Monocytes,gran,nRBCs,NK.cells,B.cells,CD4Tcells,CD8Tcells), 
+                           R2_overfit=NA, components=NA)
 
 
 
@@ -360,21 +331,6 @@ sv_sup_gestage_R2<-r2df(sv_sup_gestage)
 sv_unsup_gestage_R2<-r2df(sv_unsup_gestage)
 
 
-
-# ####### plot it
-# refreecellmix_R2_plt<-melt(refreecellmix_R2[,1:3])
-# refreecellmix_R2_plt$method<-"reffreecellmix"
-# refactor_R2_plt<-melt(refactor_R2[,1:3])
-# refactor_R2_plt$method<-"refactor"
-# 
-# plt_r2<-rbind(refactor_R2_plt, refreecellmix_R2_plt)
-# plt_r2$Method_R2<-paste(plt_r2$method, plt_r2$variable)
-# levels(plt_r2$variable)<-c("Model with only LRT Components","Model with all 6 Components")
-# 
-# ggplot(plt_r2, aes(facs_celltype, value, color=method))+geom_point()+theme_bw()+
-#   scale_color_manual(values=c("#b2182b","#2166ac"))+facet_wrap(~variable)+
-#   ylab("R2 (FACS Cell Type Variance Accounted for)")+xlab("FACS Cell Type")
-
 #simplier plot
 refreecellmix_R2_plt<-refreecellmix_R2[,1:2]
 refreecellmix_R2_plt$method<-"RefFreeCellMix"
@@ -409,4 +365,15 @@ ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, col
         axis.title=element_text(size=14))
   
 
-ggsave("/big_data/redgar/cordblood/figures/Figure1R2.pdf", width = 8, height = 7, units = "in")
+ggsave("figures/Figure1R2.pdf", width = 8, height = 7, units = "in")
+
+## mean boxplot
+ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.size=NA)+
+  geom_point(aes(fill=method),shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
+  fillscale+ylab("R2 (FACS Cell Type Variance Accounted for)")+xlab("method")+
+  theme(text=element_text(size=12),
+        axis.title=element_text(size=14),
+        axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
+
