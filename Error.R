@@ -3,94 +3,94 @@
 ###############################################################################################
 library(hydroGOF)
 
-
-## load GS
-load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
-gold_standard<-as.data.frame(adj.residuals)
-
-## function to get MAE for each dataframe
-method_MAE<-function(adj.res, method_name){
-  metod_beta<-as.data.frame(adj.res)
-  cpg_mae<-mae(t(metod_beta),t(gold_standard))
-  data.frame(method=method_name, mn_cpg_mae=mean(cpg_mae))
-}
-
-
-## Decon PCA
-load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
-error_GS<-method_MAE(adj.residuals, "Deconvolution - PCA")
-
-## Decon counts
-load("/big_data/reffree/decon_corrected_betas.Rdata")
-err<-method_MAE(adj.residuals, "Deconvolution - Drop One Cell Type")
-error_GS<-rbind(error_GS, err)
-
-## FACS PCA
-load("/big_data/reffree/facs_corrected_betas.Rdata")
-err<-method_MAE(adj.residuals, "FACS - Drop One Cell Type")
-error_GS<-rbind(error_GS, err)
-
-
-## Uncorrected
-load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
-err<-method_MAE(validation_betas.combat, "Uncorrected")
-error_GS<-rbind(error_GS, err)
-
-## Refactor
-load("/big_data/reffree/adj.residuals_refactor.Rdata")
-err<-method_MAE(adj.residuals.refactor, "ReFACTor")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.refactor)
-
-## reffreecellmix
-load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
-err<-method_MAE(adj.residuals.reffreecellmix, "RefFreeCellMix")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.reffreecellmix)
-
-## RUV GA
-load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
-err<-method_MAE(adj.residuals.ruv.ga, "RUV - GA")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.ruv.ga)
-
-## RUV sex
-load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
-err<-method_MAE(adj.residuals.ruv.sex, "RUV - Sex")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.ruv.sex)
-
-
-
-## SVA - Supervised GA 
-load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
-err<-method_MAE(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.sva.sup.ga)
-
-## SVA - Unsupervised GA 
-load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
-err<-method_MAE(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.sva.unsup.ga)
-
-## SVA - Supervised Sex 
-load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
-# err<-method_MAE(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.sva.sup.sex)
-
-## SVA - Unsupervised Sex 
-load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
-err<-method_MAE(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
-error_GS<-rbind(error_GS, err)
-rm(adj.residuals.sva.unsup.sex)
-
-
-## error for GS
-error_GS
-
-
+# 
+# ## load GS
+# load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
+# gold_standard<-as.data.frame(adj.residuals)
+# 
+# ## function to get MAE for each dataframe
+# method_MAE<-function(adj.res, method_name){
+#   metod_beta<-as.data.frame(adj.res)
+#   cpg_mae<-mae(t(metod_beta),t(gold_standard))
+#   data.frame(method=method_name, mn_cpg_mae=mean(cpg_mae))
+# }
+# 
+# 
+# ## Decon PCA
+# load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
+# error_GS<-method_MAE(adj.residuals, "Deconvolution - PCA")
+# 
+# ## Decon counts
+# load("/big_data/reffree/decon_corrected_betas.Rdata")
+# err<-method_MAE(adj.residuals, "Deconvolution - Drop One Cell Type")
+# error_GS<-rbind(error_GS, err)
+# 
+# ## FACS PCA
+# load("/big_data/reffree/facs_corrected_betas.Rdata")
+# err<-method_MAE(adj.residuals, "FACS - Drop One Cell Type")
+# error_GS<-rbind(error_GS, err)
+# 
+# 
+# ## Uncorrected
+# load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
+# err<-method_MAE(validation_betas.combat, "Uncorrected")
+# error_GS<-rbind(error_GS, err)
+# 
+# ## Refactor
+# load("/big_data/reffree/adj.residuals_refactor.Rdata")
+# err<-method_MAE(adj.residuals.refactor, "ReFACTor")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.refactor)
+# 
+# ## reffreecellmix
+# load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
+# err<-method_MAE(adj.residuals.reffreecellmix, "RefFreeCellMix")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.reffreecellmix)
+# 
+# ## RUV GA
+# load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
+# err<-method_MAE(adj.residuals.ruv.ga, "RUV - GA")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.ruv.ga)
+# 
+# ## RUV sex
+# load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
+# err<-method_MAE(adj.residuals.ruv.sex, "RUV - Sex")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.ruv.sex)
+# 
+# 
+# 
+# ## SVA - Supervised GA 
+# load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
+# err<-method_MAE(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.sva.sup.ga)
+# 
+# ## SVA - Unsupervised GA 
+# load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
+# err<-method_MAE(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.sva.unsup.ga)
+# 
+# ## SVA - Supervised Sex 
+# load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
+# # err<-method_MAE(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.sva.sup.sex)
+# 
+# ## SVA - Unsupervised Sex 
+# load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
+# err<-method_MAE(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
+# error_GS<-rbind(error_GS, err)
+# rm(adj.residuals.sva.unsup.sex)
+# 
+# 
+# ## error for GS
+# error_GS
+# 
+# 
 
 
 
@@ -380,3 +380,6 @@ load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
 err<-cor_GS(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
 cor_GS<-rbind(cor_GS, err)
 rm(adj.residuals.sva.unsup.sex)
+
+save(cor_GS, file="~/referencefree_cord_blood/correlation_distributions.RData")
+
