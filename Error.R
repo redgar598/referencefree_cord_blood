@@ -3,99 +3,6 @@
 ###############################################################################################
 library(hydroGOF)
 
-# 
-# ## load GS
-# load("/big_data/reffree/facs_pcs_corrected_betas.Rdata")
-# gold_standard<-as.data.frame(adj.residuals)
-# 
-# ## function to get MAE for each dataframe
-# method_MAE<-function(adj.res, method_name){
-#   metod_beta<-as.data.frame(adj.res)
-#   cpg_mae<-mae(t(metod_beta),t(gold_standard))
-#   data.frame(method=method_name, mn_cpg_mae=mean(cpg_mae))
-# }
-# 
-# 
-# ## Decon PCA
-# load("/big_data/reffree/decon_pcs_corrected_betas.Rdata")
-# error_GS<-method_MAE(adj.residuals, "Deconvolution - PCA")
-# 
-# ## Decon counts
-# load("/big_data/reffree/decon_corrected_betas.Rdata")
-# err<-method_MAE(adj.residuals, "Deconvolution - Drop One Cell Type")
-# error_GS<-rbind(error_GS, err)
-# 
-# ## FACS PCA
-# load("/big_data/reffree/facs_corrected_betas.Rdata")
-# err<-method_MAE(adj.residuals, "FACS - Drop One Cell Type")
-# error_GS<-rbind(error_GS, err)
-# 
-# 
-# ## Uncorrected
-# load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
-# err<-method_MAE(validation_betas.combat, "Uncorrected")
-# error_GS<-rbind(error_GS, err)
-# 
-# ## Refactor
-# load("/big_data/reffree/adj.residuals_refactor.Rdata")
-# err<-method_MAE(adj.residuals.refactor, "ReFACTor")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.refactor)
-# 
-# ## reffreecellmix
-# load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
-# err<-method_MAE(adj.residuals.reffreecellmix, "RefFreeCellMix")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.reffreecellmix)
-# 
-# ## RUV GA
-# load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
-# err<-method_MAE(adj.residuals.ruv.ga, "RUV - GA")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.ruv.ga)
-# 
-# ## RUV sex
-# load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
-# err<-method_MAE(adj.residuals.ruv.sex, "RUV - Sex")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.ruv.sex)
-# 
-# 
-# 
-# ## SVA - Supervised GA 
-# load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
-# err<-method_MAE(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.sva.sup.ga)
-# 
-# ## SVA - Unsupervised GA 
-# load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
-# err<-method_MAE(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.sva.unsup.ga)
-# 
-# ## SVA - Supervised Sex 
-# load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
-# # err<-method_MAE(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.sva.sup.sex)
-# 
-# ## SVA - Unsupervised Sex 
-# load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
-# err<-method_MAE(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
-# error_GS<-rbind(error_GS, err)
-# rm(adj.residuals.sva.unsup.sex)
-# 
-# 
-# ## error for GS
-# error_GS
-# 
-# 
-
-
-
-
-########################################################### compare all to all
 
 MSE_compare_all<-function(betas, method2_name){
 
@@ -266,34 +173,10 @@ method_adj<-as.data.frame(adj.residuals.sva.unsup.sex)
 err<-MSE_compare_all(method_adj, "SVA - Unsupervised Sex")
 error_all<-rbind(error_all, err)
 
-library(ggplot2)
-ggplot(error_all, aes(method_1,method_2, fill = mn_cpg_mae)) +
-  geom_tile(color = "black",size=0.5) +
-  geom_text(aes(label = round(mn_cpg_mae,3)), color="black")+theme_bw()+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        panel.background = element_blank(), axis.line = element_blank())+
-  scale_fill_continuous(limits=c(0, 0.01), low="#c6dbef", high="#4292c6")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-ggsave("figures/mae.pdf", width = 15, height = 12, units = "in")
+save(error_all, file="~/referencefree_cord_blood/error_all.RData")
 
 
-error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
-error_all_unique<-error_all_unique[-1,]
-
-error_all_unique$col_error<-cut(error_all_unique$mn_cpg_mae, c(0,0.001, 0.005,0.0075,0.01), right=FALSE, labels=c("<0.001","<0.005","<0.0075",">0.0075"))
-
-ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
-  geom_tile(color = "black",size=0.5) +
-  geom_text(aes(label = round(mn_cpg_mae,3)), color="black", size=5)+theme_bw()+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        panel.background = element_blank(), axis.line = element_blank())+
-  scale_fill_manual(values=c("#084594","#4292c6","#9ecae1","#deebf7"), name="MAE")+
-  theme(axis.text.y=element_text(size=12,color="black"),
-        axis.title=element_text(size=14),
-        axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1))+xlab("")+ylab("")
-
-ggsave("figures/maehalf.pdf", width = 13, height = 11, units = "in")
 
 
 
@@ -382,36 +265,4 @@ cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.unsup.sex)
 
 save(cor_to_GS, file="~/referencefree_cord_blood/correlation_distributions.RData")
-
-library(ggridges)
-load("~/referencefree_cord_blood/correlation_distributions.RData")
-
-#define consistent color scheme for methods
-library(ggsci)
-myColors <- c("gold","goldenrod",
-              "#2171b5","#6baed6","#6baed6",
-              "#9467BDFF","#D62728FF",
-              "#238443","#78c679","#addd8e","#d9f0a3",
-              "#dd3497","#fa9fb5","grey")
-
-color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
-                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
-                       "ReFACTor","RefFreeCellMix",
-                       "SVA - Supervised GA","SVA - Unsupervised GA",
-                       "SVA - Supervised Sex","SVA - Unsupervised Sex",
-                       "RUV - GA", "RUV - Sex",
-                       "Uncorrected")
-
-names(myColors) <- color_possibilities
-fillscale <- scale_fill_manual(name="Method",
-                               values = myColors, drop = T)
-
-decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
-
-ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
-  geom_density_ridges(scale = 4) + theme_ridges() +
-fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+
-  geom_vline(xintercept=decon_med_cor, color="#2171b5", size=1)
-
-ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
 

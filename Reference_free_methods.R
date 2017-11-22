@@ -31,6 +31,8 @@
               
               
               install.packages("ggridges")
+              install.packages("kableExtra")
+              install.packages("dplyr")
 
 
 

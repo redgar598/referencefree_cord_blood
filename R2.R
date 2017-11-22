@@ -1,27 +1,3 @@
-#define consistent color scheme for methods
-library(ggsci)
-myColors <- c("gold","goldenrod",
-              "#2171b5","#6baed6","#6baed6",
-              "#9467BDFF","#D62728FF",
-              "#238443","#78c679","#addd8e","#d9f0a3",
-              "#dd3497","#fa9fb5","grey")
-
-color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
-                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
-                       "ReFACTor","RefFreeCellMix",
-                       "SVA - Supervised GA","SVA - Unsupervised GA",
-                       "SVA - Supervised Sex","SVA - Unsupervised Sex",
-                       "RUV - GA", "RUV - Sex",
-                       "Uncorrected")
-
-names(myColors) <- color_possibilities
-fillscale <- scale_fill_manual(name="Method",
-                               values = myColors, drop = T)
-
-
-
-
-
 
 
 ###################### Figure 1 (R2 plot)
@@ -358,22 +334,7 @@ sv_unsup_gestage_R2_plt$method<-"SVA - Unsupervised GA"
 plt_r2<-rbind(refactor_R2_plt, refreecellmix_R2_plt,facs_PCA_R2_plt,deconcounts_R2_plt,deconPCA_R2_plt,
               ruv_GA_R2_plt, ruv_sex_R2_plt,sv_sup_sex_R2_plt,sv_unsup_sex_R2_plt,sv_sup_gestage_R2_plt,sv_unsup_gestage_R2_plt)
 
-ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
-  fillscale+
-  ylab("R2 (FACS Cell Type Variance Accounted for)")+xlab("FACS Cell Type")+
-  theme(text=element_text(size=12),
-        axis.title=element_text(size=14))
-  
 
-ggsave("figures/Figure1R2.pdf", width = 8, height = 7, units = "in")
+save(plt_r2, file="~/referencefree_cord_blood/R2_plot.RData")
 
-## mean boxplot
-ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.size=NA)+
-  geom_point(aes(fill=method),shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
-  fillscale+ylab("R2 (FACS Cell Type Variance Accounted for)")+xlab("method")+
-  theme(text=element_text(size=12),
-        axis.title=element_text(size=14),
-        axis.text.x = element_text(angle = 90, hjust = 1))
-
-ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
 

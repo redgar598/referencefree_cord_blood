@@ -1,0 +1,148 @@
+---
+title: "Reference Free Cell Correction Comparison in Cord Blood"
+author: "Meg Jones and Rachel Edgar"
+date: "22/11/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, include=FALSE,  message=FALSE}
+## Define consistent color scheme for methods
+
+library(ggsci)
+library(ggplot2)
+library(ggridges)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+
+
+## method colors
+myColors <- c("gold","goldenrod",
+              "#2171b5","#6baed6","#6baed6",
+              "#9467BDFF","#D62728FF",
+              "#238443","#78c679","#addd8e","#d9f0a3",
+              "#dd3497","#fa9fb5","grey")
+
+color_possibilities<-c("FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
+                       "Deconvolution - PCA","Deconvolution - Drop One Cell Type","Deconvolution - Counts",
+                       "ReFACTor","RefFreeCellMix",
+                       "SVA - Supervised GA","SVA - Unsupervised GA",
+                       "SVA - Supervised Sex","SVA - Unsupervised Sex",
+                       "RUV - GA", "RUV - Sex",
+                       "Uncorrected")
+
+names(myColors) <- color_possibilities
+fillscale <- scale_fill_manual(name="Method",
+                               values = myColors, drop = T)
+
+
+### Cell type colors
+myColors_cell <- c("#fc4e2a","orange", "#cb181d","#1d91c0", "#7fcdbb", "#78c679","#238443")
+
+color_possibilities_cell<-c("Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
+
+names(myColors_cell) <- color_possibilities_cell
+fillscale_cell <- scale_fill_manual(name="Cell Type",
+                               values = myColors_cell, drop = T)
+```
+
+
+
+
+```{r R21, fig.width=8,  fig.height=7, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Components from each method were included if they significantly (p<0.05) improved model fit.'}
+load("~/referencefree_cord_blood/R2_plot.RData")
+levels(plt_r2$facs_celltype)<-c("Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
+
+ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
+  fillscale+
+  ylab("R2 (FACS Cell Type Variance Accounted for)")+xlab("FACS Cell Type")+
+  theme(text=element_text(size=12),
+        axis.title=element_text(size=14))
+
+
+ggsave("figures/Figure1R2.pdf", width = 9, height = 7, units = "in")
+```
+
+
+
+```{r R22, fig.width=8,  fig.height=7, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Models include components from each method if the component had significant likelihood ratio test p value (p<0.05). Expect for deconvolution - counts which gives measure of each cell type and R2 values are only for models with the deconvolution predicted cell type. Points represent each of 7 cell types, split by the method.'}
+## mean boxplot
+levels(plt_r2$facs_celltype)<-c("Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
+
+ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.size=NA, fill="grey95")+
+  geom_point(aes(fill=facs_celltype),shape=21, color="black", size=2.25, position=position_jitter(width=0.2))+theme_bw()+
+  ylab("R2 (FACS Cell Type Variance Accounted for)")+fillscale_cell+xlab("")+
+  theme(axis.text.y=element_text(size=12,color="black"),
+        axis.title=element_text(size=14),
+        axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1))
+
+ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
+
+
+```
+
+
+```{r mae, fig.width=13,  fig.height=11, echo=FALSE,  message=FALSE,fig.cap='Mean absolute error(MAE) of CpGs compared to the gold-standard FACS-PCA corrected beta values. Errors shown are an average of all CpGs MAE. Boxes are coloured by the discretized MAE value to highlight method performance.'}
+load("~/referencefree_cord_blood/error_all.RData")
+
+error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
+error_all_unique<-error_all_unique[-1,]
+
+error_all_unique$col_error<-cut(error_all_unique$mn_cpg_mae, c(0,0.001, 0.005,0.0075,0.01), right=FALSE, labels=c("<0.001","<0.005","<0.0075",">0.0075"))
+
+ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
+  geom_tile(color = "black",size=0.5) +
+  geom_text(aes(label = round(mn_cpg_mae,3)), color="black", size=5)+theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_blank())+
+  scale_fill_manual(values=c("#084594","#4292c6","#9ecae1","#deebf7"), name="MAE")+
+  theme(axis.text.y=element_text(size=12,color="black"),
+        axis.title=element_text(size=14),
+        axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1))+xlab("")+ylab("")
+
+ggsave("figures/maehalf.pdf", width = 13, height = 11, units = "in")
+
+```
+
+
+```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
+load("~/referencefree_cord_blood/correlation_distributions.RData")
+
+decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
+
+ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
+  geom_density_ridges(scale = 4) + theme_ridges() +
+fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+
+  geom_vline(xintercept=decon_med_cor, color="#2171b5", size=1)
+
+ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
+```
+
+
+
+```{r deconvolution, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap=''}
+
+ggsave("figures/Figure4decon.pdf", width = 12, height = 10, units = "in")
+```
+
+
+```{r, echo=FALSE,  message=FALSE}
+sex_table<-read.csv("Sex_EWAS_hit_tables.csv")
+colnames(sex_table)<-c("Method","Hits","True Positives","False Positives","False Negatives","Spearman","Kendall" )
+levels(sex_table$Method)<-c("Deconvolution - PCA","Deconvolution - Drop One Cell Type",
+                            "FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
+                            "ReFACTor","RefFreeCellMix","RUV","SVA - Supervised","SVA - Unsupervised","Uncorrected")
+  
+
+kable(sex_table, format="latex", digits=3,booktabs = T, caption = "Comparison of cell type correction methods through EWAS results. EWAS was performed for sex on each corrected dataset. True and false positives and negatives were cvalculated in comparison to the gold-standard FACS - PCA correction. Spearman is the correlation coefficient for all CpG p values, and Kendall is the rank correlation coefficient for the top 1000 CpG p values.")%>%
+  kable_styling(font_size = 7, (latex_options = c("HOLD_position")))
+
+```
+
+
