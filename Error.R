@@ -410,7 +410,7 @@ decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvoluti
 
 ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
   geom_density_ridges(scale = 4) + theme_ridges() +
-fillscale   +xlab("CpG Correlation to Gold Stanndard Betas")+ylab("")+
+fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+
   geom_vline(xintercept=decon_med_cor, color="#2171b5", size=1)
 
 ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")

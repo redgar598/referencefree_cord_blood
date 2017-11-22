@@ -51,8 +51,10 @@ beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#110228/114204 of the inde
 Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
 beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
 Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
-invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #109841/114204 (96.1%)
-beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#325266 
+invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #106613/114204 (96.1%)
+save(invar_in_beta_and_independent, file="invariable_cordblood_CpGs.Rdata")
+
+beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#316128 
 
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
@@ -123,7 +125,7 @@ sv_unsup_gestage<-svobj$sv
 ################### SVA supervised GA
 #Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
 library(sva)
-load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs_Nov21.Rdata")
 mval_diff_celltype<-mval_variable[which(rownames(mval_variable)%in%diff_cpgs$CpG),]
 
 #Null model matrix must be nested in the full model matrix
@@ -136,7 +138,7 @@ sv_sup_gestage<-svobj$sv
 
 ################### RUV GA
 library(missMethyl)
-load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs_Nov21.Rdata")
 
 # which probes define cell type
 ctl<-(rownames(mval_variable)%in%diff_cpgs$CpG)
@@ -165,7 +167,7 @@ sv_unsup_sex<-svobj$sv
 ################### SVA supervised Sex
 #Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
 library(sva)
-load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs_Nov21.Rdata")
 mval_diff_celltype<-mval_variable[which(rownames(mval_variable)%in%diff_cpgs$CpG),]
 
 #Null model matrix must be nested in the full model matrix
@@ -178,7 +180,7 @@ sv_sup_sex<-svobj$sv
 
 ################### RUV sex
 library(missMethyl)
-load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs.Rdata")
+load("/big_data/redgar/cordblood/Cord_blood_celltype_Diff_CpGs_Nov21.Rdata")
 
 # which probes define cell type
 ctl<-(rownames(mval_variable)%in%diff_cpgs$CpG)
@@ -345,3 +347,57 @@ save(adj.residuals.ruv.sex,file="/big_data/redgar/cordblood/adj.residuals_ruv.se
 rm(adj.residuals.ruv.sex)
 rm(betas.lm)
 gc()
+
+
+
+#########################################################################################################
+## remove invariable probes
+#########################################################################################################
+load("invariable_cordblood_CpGs.Rdata")
+beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]
+
+
+## Uncorrected
+load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
+validation_betas.combat<-validation_betas.combat[which(!(rownames(validation_betas.combat)%in%invar_in_beta_and_independent)),] 
+save(validation_betas.combat, file="/big_data/reffree/WB_betas_BMIQ_combat_together_invar_filtered.rdata")
+
+## Refactor
+load("/big_data/reffree/adj.residuals_refactor.Rdata")
+adj.residuals.refactor<-adj.residuals.refactor[which(!(rownames(adj.residuals.refactor)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.refactor, file="/big_data/reffree/adj.residuals_refactor_invar_filtered.Rdata")
+
+## reffreecellmix
+load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
+adj.residuals.reffreecellmix<-adj.residuals.reffreecellmix[which(!(rownames(adj.residuals.reffreecellmix)%in%invar_in_beta_and_independent)),]#316128 
+save(adj.residuals.reffreecellmix, file="/big_data/reffree/adj.residuals_reffreecellmix_invar_filtered.Rdata")
+
+## RUV GA
+load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
+adj.residuals.ruv.ga<-adj.residuals.ruv.ga[which(!(rownames(adj.residuals.ruv.ga)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.ruv.ga, file="/big_data/reffree/adj.residuals_ruv.ga_invar_filtered.Rdata")
+
+## RUV sex
+load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
+adj.residuals.ruv.sex<-adj.residuals.ruv.sex[which(!(rownames(adj.residuals.ruv.sex)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.ruv.sex, file="/big_data/reffree/adj.residuals_ruv.sex_invar_filtered.Rdata")
+
+## SVA - Supervised GA 
+load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
+adj.residuals.sva.sup.ga<-adj.residuals.sva.sup.ga[which(!(rownames(adj.residuals.sva.sup.ga)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.sva.sup.ga, file="/big_data/reffree/adj.residuals_sva.sup.ga_invar_filtered.Rdata")
+
+## SVA - Unsupervised GA 
+load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
+adj.residuals.sva.unsup.ga<-adj.residuals.sva.unsup.ga[which(!(rownames(adj.residuals.sva.unsup.ga)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.sva.unsup.ga, file="/big_data/reffree/adj.residuals_sva.unsup.ga_invar_filtered.Rdata")
+
+## SVA - Supervised Sex 
+load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
+adj.residuals.sva.sup.sex<-adj.residuals.sva.sup.sex[which(!(rownames(adj.residuals.sva.sup.sex)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.sva.sup.sex, file="/big_data/reffree/adj.residuals_sva.sup.sex_invar_filtered.Rdata")
+
+## SVA - Unsupervised Sex 
+load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
+adj.residuals.sva.unsup.sex<-adj.residuals.sva.unsup.sex[which(!(rownames(adj.residuals.sva.unsup.sex)%in%invar_in_beta_and_independent)),] 
+save(adj.residuals.sva.unsup.sex, file="/big_data/reffree/adj.residuals_sva.unsup.sex_invar_filtered.Rdata")
