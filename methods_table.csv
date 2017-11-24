@@ -1,0 +1,14 @@
+Method,Explanation,Type,Phenotype Required,Reference
+FACS – PCA,Top 5 PCs from PCA on FACS counts,Reference,N,Paper in prep
+FACS - Drop One Cell Type,FACS cell types as covariates in correction model with one dropped,Reference,N,Paper in prep
+Deconvolution - PCA,Top 5 PCs from PCA on deconvolution predicted cell counts,Reference,N,Paper in prep
+Deconvolution - Drop One Cell Type,Decouvolution predicted cell counts as covariates in correction model with one dropped,Reference,N,Paper in prep
+ReFACTor,Components as model covariates,Reference free,N,PMID:27018579
+RefFreeCellMix,Components as model covariates,Reference free,N, PMID: 27358049
+SVA - Unsupervised GA,SVA on all CpGs with gestational age (GA) in model,Reference free,Y,PMID: 17907809
+SVA - Unsupervised Sex,SVA on all CpGs with sex in model,Reference free,Y,PMID: 17907809
+SVA - Supervised GA,SVA on 700 cord blood cell type differentially methylated CpGs with gestational age (GA) in model,Semi Reference Free,Y,PMID: 17907809
+SVA - Supervised Sex,SVA on 700 cord blood cell type differentially methylated CpGs with sex in model,Semi Reference Free,Y,PMID: 17907809
+RUV - GA,RUV with  700 cord blood cell type differentially methylated CpGs as control probes and with gestational age (GA) in model,Semi Reference Free,Y,PMID: 25990733
+RUV - Sex,RUV with  700 cord blood cell type differentially methylated CpGs as control probes and with sex in model,Semi Reference Free,Y,PMID: 25990733
+Uncorrected,Not corrected for cell composition,No correction,N,NA

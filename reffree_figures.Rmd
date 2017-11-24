@@ -62,8 +62,6 @@ th <-   theme(axis.text=element_text(size=12),
 
 ```
 
-\newpage
-
 ```{r, echo=FALSE,  message=FALSE}
 ## load meta data
 meta_cord<-read.csv("/big_data/redgar/cordblood/24_wholebloods_samplesheet.csv")
@@ -75,17 +73,27 @@ GA<-round(mean(meta_cord$GA), 2)
 
 meta_celltypes<-meta_cord[,c(5:11)]
 mean_celltypes<-t(as.data.frame(round(colMeans(meta_celltypes),2)))
+sd_celltypes<-t(as.data.frame(round(apply(meta_celltypes,2, sd),2)))
+mean_celltypes<-t(as.data.frame(paste(mean_celltypes,"% (",sd_celltypes,")",  sep="")))
 
-meta_summary<-t(data.frame(Female=female,Mean_GA=GA,mean_celltypes ))
-rownames(meta_summary)<-c("Female","Mean Gestational Age","Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
-colnames(meta_summary)<-c("Cord Blood n=24")
+lab<-data.frame(celltype="Mean % (sd)")
+
+meta_summary<-t(data.frame(Female=female,Mean_GA=GA,lab, mean_celltypes ))
+rownames(meta_summary)<-c("Female","Mean Gestational Age","FACS Cell Composition","Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
+meta_summary<-as.data.frame(meta_summary)
+meta_summary$genR<-""
+colnames(meta_summary)<-c("UBC data (n=24)", "GenR (n=196)")
+
 
 kable(meta_summary, format="latex", booktabs = T, caption = "Cohort Description")%>%
-  kable_styling(font_size = 12,(latex_options = c("HOLD_position")))
+  kable_styling(font_size = 12,(latex_options = c("HOLD_position")))%>%
+  row_spec(3, bold = T)%>%
+  add_indent(c(4:10))
 
 ```
+\pagebreak
 
-
+\newpage
 ```{r, echo=FALSE,  message=FALSE}
 methods_table<-read.csv("methods_table.csv")
 colnames(methods_table)<-c("Method","Explanation","Type","Phenotype Required","Citation" )
@@ -95,7 +103,7 @@ kable(methods_table, format="latex", booktabs = T, caption = "Method name used i
   column_spec(column=2, width = "10em")
 
 ```
-
+\pagebreak
 
 \newpage
 ```{r R21, fig.width=8,  fig.height=5, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Components from each method were included if they significantly (p<0.05) improved model fit.'}
@@ -110,9 +118,10 @@ ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, col
 
 ggsave("figures/Figure1R2.pdf", width = 9, height = 5, units = "in")
 ```
+\pagebreak
 
 
-
+\newpage
 ```{r R22, fig.width=8,  fig.height=7, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Models include components from each method if the component had significant likelihood ratio test p value (p<0.05). Expect for deconvolution - counts which gives measure of each cell type and R2 values are only for models with the deconvolution predicted cell type. Points represent each of 7 cell types, split by the method.'}
 ## mean boxplot
 ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.size=NA, fill="grey95")+
@@ -124,8 +133,9 @@ ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
 
 
 ```
+\pagebreak
 
-
+\newpage
 ```{r mae, fig.width=13,  fig.height=11, echo=FALSE,  message=FALSE,fig.cap='Mean absolute error(MAE) of CpGs compared to the gold-standard FACS-PCA corrected beta values. Errors shown are an average of all CpGs MAE. Boxes are coloured by the discretized MAE value to highlight method performance.'}
 load("~/referencefree_cord_blood/error_all.RData")
 
@@ -148,8 +158,9 @@ ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
 ggsave("figures/maehalf.pdf", width = 13, height = 11, units = "in")
 
 ```
+\pagebreak
 
-
+\newpage
 ```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
 load("~/referencefree_cord_blood/correlation_distributions.RData")
 
@@ -162,7 +173,9 @@ fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
 
 ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
 ```
+\pagebreak
 
+\newpage
 ```{r deconvolutioncounts, fig.width=9,  fig.height=11, echo=FALSE,  message=FALSE, fig.cap='Varibility in the predicted cell counts on data already corrected for cell type. Across methods the deconvolution predicted cell counts for each cell type are shown. '}
 
 load("/big_data/reffree/adj.residuals.sva.unsup.sex_predicted_cell_types.Rdata")
@@ -193,17 +206,17 @@ decon.pcs.counts<- est_cell_counts
 load("/big_data/reffree/Louie_predicted_WB_celltypes_Oct27_use_Louies_sorted.rdata")
 uncorrected<- est_cell_counts
 plot.counts<- melt(rbind(cbind(as.data.frame(uncorrected), Method="uncorrected"),
-                         cbind(as.data.frame(facs.counts), Method="FACS_counts"), 
-                         cbind(as.data.frame(facs.pcs.counts), Method="FACS_PCs"), 
-                         cbind(as.data.frame(decon.counts), Method="Decon_counts"), 
-                         cbind(as.data.frame(decon.pcs.counts), Method="Decon_PCs"), 
-                         cbind(as.data.frame(sva.unsup.sex), Method="sva.unsup.sex"), 
-                         cbind(as.data.frame(sva.unsup.ga), Method="sva.unsup.ga"), 
+                         cbind(as.data.frame(facs.counts), Method="FACS_counts"),
+                         cbind(as.data.frame(facs.pcs.counts), Method="FACS_PCs"),
+                         cbind(as.data.frame(decon.counts), Method="Decon_counts"),
+                         cbind(as.data.frame(decon.pcs.counts), Method="Decon_PCs"),
+                         cbind(as.data.frame(sva.unsup.sex), Method="sva.unsup.sex"),
+                         cbind(as.data.frame(sva.unsup.ga), Method="sva.unsup.ga"),
                          cbind(as.data.frame(sva.sup.ga), Method="sva.sup.ga"),
-                         cbind(as.data.frame(sva.sup.sex), Method="sva.sup.sex"), 
-                         cbind(as.data.frame(ruv.sex), Method="ruv.sex"), 
-                         cbind(as.data.frame(ruv.ga), Method="ruv.ga"), 
-                         cbind(as.data.frame(cellmix), Method="cellmix"), 
+                         cbind(as.data.frame(sva.sup.sex), Method="sva.sup.sex"),
+                         cbind(as.data.frame(ruv.sex), Method="ruv.sex"),
+                         cbind(as.data.frame(ruv.ga), Method="ruv.ga"),
+                         cbind(as.data.frame(cellmix), Method="cellmix"),
                          cbind(as.data.frame(refactor), Method="refactor")
 ), id="Method")
 
@@ -226,22 +239,23 @@ ggsave("figures/Figure4decon.pdf", width = 9, height = 11, units = "in")
 
 
 ```
+\pagebreak
 
-
+\newpage
 ```{r deconvolutionmad, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Median absolute deviation (MAD) of predicted cell type counts from deconvolution. Boxes are coloured by the discretized MAD value to highlight method performance. '}
 
 
 mads<- data.frame(FACS_counts=apply(facs.counts, 2, mad),
                   FACS_pcs=apply(facs.pcs.counts, 2, mad),
                   Decon_counts=apply(decon.counts, 2, mad),
-                  Decon_pcs=apply(decon.pcs.counts, 2, mad), 
-                  sva.unsup.sex= apply(sva.unsup.sex, 2, mad), 
-                  sva.unsup.ga= apply(sva.unsup.ga, 2, mad), 
-                  sva.sup.sex= apply(sva.sup.sex, 2, mad), 
-                  sva.sup.ga= apply(sva.sup.ga, 2, mad), 
+                  Decon_pcs=apply(decon.pcs.counts, 2, mad),
+                  sva.unsup.sex= apply(sva.unsup.sex, 2, mad),
+                  sva.unsup.ga= apply(sva.unsup.ga, 2, mad),
+                  sva.sup.sex= apply(sva.sup.sex, 2, mad),
+                  sva.sup.ga= apply(sva.sup.ga, 2, mad),
                   ruv.sex= apply(ruv.sex, 2, mad),
-                  ruv.ga= apply(ruv.ga, 2, mad), 
-                  cellmix= apply(cellmix, 2, mad), 
+                  ruv.ga= apply(ruv.ga, 2, mad),
+                  cellmix= apply(cellmix, 2, mad),
                   refactor=apply(refactor, 2, mad),
                   uncorrected=apply(uncorrected, 2, mad)
 
@@ -271,16 +285,16 @@ ggplot(mads.melt, aes(celltypes, variable, fill=col_mad))+
 
 ggsave("figures/Figure5decon.pdf", width = 12, height = 10, units = "in")
 ```
+\pagebreak
 
 \newpage
-
 ```{r, echo=FALSE,  message=FALSE}
 sex_table<-read.csv("Sex_EWAS_hit_tables.csv")
 colnames(sex_table)<-c("Method","Hits","True Positives","False Positives","False Negatives","Spearman","Kendall" )
 levels(sex_table$Method)<-c("Deconvolution - PCA","Deconvolution - Drop One Cell Type",
                             "FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
                             "ReFACTor","RefFreeCellMix","RUV","SVA - Supervised","SVA - Unsupervised","Uncorrected")
-  
+
 sex_table$Spearman<-round(sex_table$Spearman, 3)
 sex_table$Kendall<-round(sex_table$Kendall, 3)
 
@@ -290,5 +304,6 @@ kable(sex_table, format="latex", booktabs = T, caption = "Comparison of cell typ
   kable_styling(font_size = 7,(latex_options = c("HOLD_position")))
 
 ```
+\pagebreak
 
 
