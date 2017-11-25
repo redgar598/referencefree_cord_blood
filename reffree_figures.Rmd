@@ -3,12 +3,19 @@ title: "Reference Free Cell Correction Comparison in Cord Blood"
 author: "Meg Jones and Rachel Edgar"
 date: "22/11/2017"
 output: pdf_document
+header-includes: \usepackage{float}
+
 ---
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+```{r global_options, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(fig.pos = '!h')
+```
 
 
 ```{r, include=FALSE,  message=FALSE}
@@ -61,7 +68,7 @@ th <-   theme(axis.text=element_text(size=12),
         legend.title=element_text(size=14))
 
 ```
-
+\newpage
 ```{r, echo=FALSE,  message=FALSE}
 ## load meta data
 meta_cord<-read.csv("/big_data/redgar/cordblood/24_wholebloods_samplesheet.csv")
@@ -91,7 +98,17 @@ kable(meta_summary, format="latex", booktabs = T, caption = "Cohort Description"
   add_indent(c(4:10))
 
 ```
-\pagebreak
+
+## What point are we trying to make?
+In cord blood we now have a reference based deconvolution method (**yay!**)  
+But in most other tissues we do not.   
+We can use the cord blood gold-standard correction to benchmark reference free methods to recommend a solution for tissues with no reference.
+
+###How will we benchmark?
+* Which method gives components which are most similar to FACS cell counts?
+* Which method produces corrected betas most like the gold-standard corrected betas?
+* Which method’s corrected betas are the most cell composition normalized (least variability in cell composition after correction)
+* EWAS sensitivity specificity to gold-standard EWAS hits, and enrichment for cell type CpGs in EWAS hits. 
 
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
@@ -118,7 +135,6 @@ ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, col
 
 ggsave("figures/Figure1R2.pdf", width = 9, height = 5, units = "in")
 ```
-\pagebreak
 
 
 \newpage
@@ -133,7 +149,20 @@ ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
 
 
 ```
-\pagebreak
+
+```{r}
+load("~/referencefree_cord_blood/R2_inverse_plot.RData" )
+
+ggplot(R2_inverse_all, aes(Method, R2_inverse, fill=Method))+geom_boxplot(outlier.size=NA, fill="grey95")+
+  geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
+  fillscale+
+  ylab("R2 (Component Variance not Accounted for)")+xlab("")+th+
+  theme(axis.text.x = element_text(size=12,angle = 45, hjust = 1))
+
+ggsave("figures/Figure3R2.pdf", width = 8, height = 7, units = "in")
+
+```
+
 
 \newpage
 ```{r mae, fig.width=13,  fig.height=11, echo=FALSE,  message=FALSE,fig.cap='Mean absolute error(MAE) of CpGs compared to the gold-standard FACS-PCA corrected beta values. Errors shown are an average of all CpGs MAE. Boxes are coloured by the discretized MAE value to highlight method performance.'}
@@ -158,7 +187,7 @@ ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
 ggsave("figures/maehalf.pdf", width = 13, height = 11, units = "in")
 
 ```
-\pagebreak
+
 
 \newpage
 ```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
@@ -173,7 +202,6 @@ fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
 
 ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
 ```
-\pagebreak
 
 \newpage
 ```{r deconvolutioncounts, fig.width=9,  fig.height=11, echo=FALSE,  message=FALSE, fig.cap='Varibility in the predicted cell counts on data already corrected for cell type. Across methods the deconvolution predicted cell counts for each cell type are shown. '}
@@ -239,7 +267,6 @@ ggsave("figures/Figure4decon.pdf", width = 9, height = 11, units = "in")
 
 
 ```
-\pagebreak
 
 \newpage
 ```{r deconvolutionmad, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Median absolute deviation (MAD) of predicted cell type counts from deconvolution. Boxes are coloured by the discretized MAD value to highlight method performance. '}
@@ -285,7 +312,6 @@ ggplot(mads.melt, aes(celltypes, variable, fill=col_mad))+
 
 ggsave("figures/Figure5decon.pdf", width = 12, height = 10, units = "in")
 ```
-\pagebreak
 
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
@@ -304,6 +330,5 @@ kable(sex_table, format="latex", booktabs = T, caption = "Comparison of cell typ
   kable_styling(font_size = 7,(latex_options = c("HOLD_position")))
 
 ```
-\pagebreak
 
 

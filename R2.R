@@ -338,3 +338,33 @@ plt_r2<-rbind(refactor_R2_plt, refreecellmix_R2_plt,facs_PCA_R2_plt,deconcounts_
 save(plt_r2, file="~/referencefree_cord_blood/R2_plot.RData")
 
 
+#################################################################################################################################
+## Reverse R2
+#################################################################################################################################
+
+# refactor
+
+R2_inverse<-function(comp_df, method_name){
+  r2s<-lapply(1:ncol(comp_df), function(comp){
+  data.frame(Method=method_name, comp=comp, r2=summary(lm(comp_df[,comp] ~ 1+ Monocytes + Granulocytes + nRBCs + NK.cells +  B.cells + CD4..T.cells + CD8..T.cells, data=facs_counts))$r.squared)})
+  do.call(rbind, r2s)
+}
+
+ReFACTor<- R2_inverse(RC, "ReFACTor")
+decon1<- R2_inverse(decon_pcs[,1:5], "Deconvolution - PCA")
+decon2<-R2_inverse(est_cell_counts, "Deconvolution - Counts")
+facs1<- R2_inverse(facs_counts, "FACS - Drop One Cell Type")
+facs2<-R2_inverse(facs_pcs[,1:5], "FACS - PCA - Gold-Standard")
+reffreecellmix<-  R2_inverse(RefFreeCounts, "RefFreeCellMix")
+ruvga<-R2_inverse(ruv_GA, "RUV - GA")
+ruvsex<-R2_inverse(ruv_sex, "RUV - Sex")
+sv1<-R2_inverse(sv_sup_gestage, "SVA - Supervised GA")
+sv2<-R2_inverse(sv_sup_sex, "SVA - Supervised Sex")
+sv3<-R2_inverse(sv_unsup_gestage, "SVA - Unsupervised GA")
+sv4<-R2_inverse(sv_unsup_sex, "SVA - Unsupervised Sex")
+
+R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs1, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
+R2_inverse_all$R2_inverse<-1-R2_inverse_all$r2
+
+
+
