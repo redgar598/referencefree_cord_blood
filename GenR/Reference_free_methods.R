@@ -56,21 +56,21 @@ RefFreeCounts<-as.data.frame(testArray1$Omega)
 
 ################### ReFACTor
 #https://github.com/cozygene/refactor/tree/master/R
-source("/big_data/redgar/cordblood/refactor.R")
+source("/GenR/refactor.R")
         beta_df<-as.data.frame(beta_variable)
         beta_df$ID<-rownames(beta_df)
         beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
-        write.table(beta_df, file="/big_data/redgar/cordblood/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
+        write.table(beta_df, file="betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
 
 k = 5
-datafile = "/big_data/redgar/cordblood/betas_for_refactor.txt"
+datafile = "betas_for_refactor.txt"
 
 results <- refactor(datafile,k)
 RC <- as.data.frame(results$refactor_components) # Extract the ReFACTor components
 
 
 ## save for plotting
-save(RefFreeCounts, RC, file="/big_data/redgar/cordblood/Count_like_data.Rdata")
+save(RefFreeCounts, RC, file="Count_like_data.Rdata")
 
 ################### SVA GA
 #Surrogate variable analysis: https://www.bioconductor.org/packages/release/bioc/html/sva.html
