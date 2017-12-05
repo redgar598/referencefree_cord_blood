@@ -5,7 +5,8 @@ meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
 
 rownames(meta_cord)<-meta_cord$Sample_ID
 facs_counts<-meta_cord[,c(7:12)]
-colnames(facs_counts)<-c("NK Cells","B Cells","CD8 T Cells","CD4 T Cells","Granulocytes","Monocytes")
+colnames(facs_counts)<-c("NK.cells","B.cells","CD8..T.cells","CD4..T.cells","Granulocytes","Mono")
+
 
 load("~/RE_GenR/Count_like_data.Rdata")
 load("~/RE_GenR/Components_GA.Rdata")
@@ -23,7 +24,6 @@ rownames(sv_sup_sex)<-rownames(RefFreeCounts)
 rownames(sv_unsup_sex)<-rownames(RefFreeCounts)
 rownames(sv_sup_gestage)<-rownames(RefFreeCounts)
 rownames(sv_unsup_gestage)<-rownames(RefFreeCounts)
-
 
 facs_counts<-facs_counts[which(rownames(facs_counts)%in%rownames(RefFreeCounts)),]
 RefFreeCounts<-RefFreeCounts[match(rownames(facs_counts), rownames(RefFreeCounts)),]
@@ -211,7 +211,7 @@ nRBCs<-summary(lm(facs_count$nRBCs ~ 1+ est_cell_counts$nRBC))$r.squared
 NK.cells<-summary(lm(facs_count$NK.cells ~ 1+ est_cell_counts$NK))$r.squared
 B.cells<-summary(lm(facs_count$B.cells ~ 1+ est_cell_counts$Bcell))$r.squared
 CD4Tcells<-summary(lm(facs_count$CD4..T.cells ~ 1+ est_cell_counts$CD4T))$r.squared
-CD8Tcells<-summary(lm(facs_count$CD4..T.cells ~ 1+ est_cell_counts$CD8T))$r.squared
+CD8Tcells<-summary(lm(facs_count$CD8..T.cells ~ 1+ est_cell_counts$CD8T))$r.squared
 
 
 deconcounts_R2<-data.frame(facs_celltype=colnames(facs_count), 

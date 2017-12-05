@@ -2,6 +2,14 @@
 load("~/ewas3rdround/WB_betas_BMIQ_comabt_outlierremoved.rdata")
 beta<-as.data.frame(validation_betas.combat)
 
+## remove samples with missing facs data
+meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
+rownames(meta_cord)<-meta_cord$Sample_ID
+facs_counts<-meta_cord[,c(7:12)]
+nofacs<-names(which(apply(facs_counts, 1, function(x) sum(is.na(x)))>0))
+meta_cord<-meta_cord[which(!(meta_cord$Sample_ID%in%nofacs)),]
+meta_cord<-meta_cord[which(meta_cord$Sample_ID%in%colnames(beta)),]
+beta<-beta[,which(!(colnames(beta)%in%nofacs))]
 
 library(ggplot2)
 library(reshape)
@@ -9,18 +17,20 @@ library(RCurl)
 
   # only need to run this one so commented out for debugging
   # ## remove invariable probes
-  # x <- getURL("https://raw.githubusercontent.com/redgar598/Tissue_Invariable_450K_CpGs/master/Invariant_Blood_CpGs.csv")
-  # y <- read.csv(text = x)
-  # beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#105958/114204 of the independent invariable sites are in beta
-  # Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
-  # beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
-  # Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
-  # invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #105529/114204 (95.4%)
-  # save(invar_in_beta_and_independent, file="~/RE_GenR/invariable_cordblood_CpGs.Rdata")
-  
+  x <- getURL("https://raw.githubusercontent.com/redgar598/Tissue_Invariable_450K_CpGs/master/Invariant_Blood_CpGs.csv")
+  y <- read.csv(text = x)
+  beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#105958/114204 of the independent invariable sites are in beta
+  Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
+  beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
+  Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
+  invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #105529/114204 (95.4%)
+  length(invar_in_beta_and_independent)
+  save(invar_in_beta_and_independent, file="~/RE_GenR/invariable_cordblood_CpGs.Rdata")
+
 
 load("~/RE_GenR/invariable_cordblood_CpGs.Rdata")
 beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#299693 
+dim(beta_variable)
 
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
@@ -34,8 +44,6 @@ mval_variable = t(mval_variable)
 
 ## impute missing mval with row median
 NA2med <- function(x) replace(x, is.na(x), median(x, na.rm = TRUE))
-#mval_complete <- t(apply(mval,1, NA2med))
-#beta_complete <- t(apply(beta,1, NA2med))
 beta_variable<-t(apply(beta_variable,1, NA2med))
 mval_variable<-t(apply(mval_variable,1, NA2med))
 
@@ -68,10 +76,10 @@ RefFreeCounts<-as.data.frame(testArray1$Omega)
 source("~/RE_GenR/refactor.R")
 
   # only need to run this one so commented out for debugging
-  # beta_df<-as.data.frame(beta_variable)
-  # beta_df$ID<-rownames(beta_df)
-  # beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
-  # write.table(beta_df, file="~/RE_GenR/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
+  beta_df<-as.data.frame(beta_variable)
+  beta_df$ID<-rownames(beta_df)
+  beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
+  write.table(beta_df, file="~/RE_GenR/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
 
 k = 5
 datafile = "~/RE_GenR/betas_for_refactor.txt"
