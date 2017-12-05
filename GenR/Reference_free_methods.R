@@ -1,26 +1,26 @@
 ## load in testing data
-load("~/ewas3rdround/genr_betas_noob_BMIQ.rdata")
-beta<-as.data.frame(genr.betas.noob.bmiq)
-colnames(beta)<-gsub("/home/040129/3roundEWAs-AllFiles/", "", colnames(beta))
+load("~/ewas3rdround/WB_betas_BMIQ_comabt_outlierremoved.rdata")
+beta<-as.data.frame(validation_betas.combat)
 
 
 library(ggplot2)
 library(reshape)
 library(RCurl)
 
-# ## remove invariable probes
-# x <- getURL("https://raw.githubusercontent.com/redgar598/Tissue_Invariable_450K_CpGs/master/Invariant_Blood_CpGs.csv")
-# y <- read.csv(text = x)
-# beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#110097/114204 of the independent invariable sites are in beta
-# Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
-# beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
-# Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
-# invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #108903/114204 (95.4%)
-# save(invar_in_beta_and_independent, file="~/RE_GenR/invariable_cordblood_CpGs.Rdata")
-
+  # only need to run this one so commented out for debugging
+  # ## remove invariable probes
+  # x <- getURL("https://raw.githubusercontent.com/redgar598/Tissue_Invariable_450K_CpGs/master/Invariant_Blood_CpGs.csv")
+  # y <- read.csv(text = x)
+  # beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#105958/114204 of the independent invariable sites are in beta
+  # Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
+  # beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
+  # Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
+  # invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #105529/114204 (95.4%)
+  # save(invar_in_beta_and_independent, file="~/RE_GenR/invariable_cordblood_CpGs.Rdata")
+  
 
 load("~/RE_GenR/invariable_cordblood_CpGs.Rdata")
-beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#319721 
+beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#299693 
 
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
@@ -67,6 +67,7 @@ RefFreeCounts<-as.data.frame(testArray1$Omega)
 #https://github.com/cozygene/refactor/tree/master/R
 source("~/RE_GenR/refactor.R")
 
+  # only need to run this one so commented out for debugging
   # beta_df<-as.data.frame(beta_variable)
   # beta_df$ID<-rownames(beta_df)
   # beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
@@ -318,56 +319,3 @@ rm(adj.residuals.ruv.sex)
 rm(betas.lm)
 gc()
 
-
-# 
-# #########################################################################################################
-# ## remove invariable probes
-# #########################################################################################################
-# load("invariable_cordblood_CpGs.Rdata")
-# beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]
-# 
-# 
-# ## Uncorrected
-# load("/big_data/reffree/WB_betas_BMIQ_combat_together.rdata")
-# validation_betas.combat<-validation_betas.combat[which(!(rownames(validation_betas.combat)%in%invar_in_beta_and_independent)),] 
-# save(validation_betas.combat, file="/big_data/reffree/WB_betas_BMIQ_combat_together_invar_filtered.rdata")
-# 
-# ## Refactor
-# load("/big_data/reffree/adj.residuals_refactor.Rdata")
-# adj.residuals.refactor<-adj.residuals.refactor[which(!(rownames(adj.residuals.refactor)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.refactor, file="/big_data/reffree/adj.residuals_refactor_invar_filtered.Rdata")
-# 
-# ## reffreecellmix
-# load("/big_data/reffree/adj.residuals_reffreecellmix.Rdata")
-# adj.residuals.reffreecellmix<-adj.residuals.reffreecellmix[which(!(rownames(adj.residuals.reffreecellmix)%in%invar_in_beta_and_independent)),]#316128 
-# save(adj.residuals.reffreecellmix, file="/big_data/reffree/adj.residuals_reffreecellmix_invar_filtered.Rdata")
-# 
-# ## RUV GA
-# load("/big_data/reffree/adj.residuals_ruv.ga.Rdata")
-# adj.residuals.ruv.ga<-adj.residuals.ruv.ga[which(!(rownames(adj.residuals.ruv.ga)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.ruv.ga, file="/big_data/reffree/adj.residuals_ruv.ga_invar_filtered.Rdata")
-# 
-# ## RUV sex
-# load("/big_data/reffree/adj.residuals_ruv.sex.Rdata")
-# adj.residuals.ruv.sex<-adj.residuals.ruv.sex[which(!(rownames(adj.residuals.ruv.sex)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.ruv.sex, file="/big_data/reffree/adj.residuals_ruv.sex_invar_filtered.Rdata")
-# 
-# ## SVA - Supervised GA 
-# load("/big_data/reffree/adj.residuals_sva.sup.ga.Rdata")
-# adj.residuals.sva.sup.ga<-adj.residuals.sva.sup.ga[which(!(rownames(adj.residuals.sva.sup.ga)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.sva.sup.ga, file="/big_data/reffree/adj.residuals_sva.sup.ga_invar_filtered.Rdata")
-# 
-# ## SVA - Unsupervised GA 
-# load("/big_data/reffree/adj.residuals_sva.unsup.ga.Rdata")
-# adj.residuals.sva.unsup.ga<-adj.residuals.sva.unsup.ga[which(!(rownames(adj.residuals.sva.unsup.ga)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.sva.unsup.ga, file="/big_data/reffree/adj.residuals_sva.unsup.ga_invar_filtered.Rdata")
-# 
-# ## SVA - Supervised Sex 
-# load("/big_data/reffree/adj.residuals_sva.sup.sex.Rdata")
-# adj.residuals.sva.sup.sex<-adj.residuals.sva.sup.sex[which(!(rownames(adj.residuals.sva.sup.sex)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.sva.sup.sex, file="/big_data/reffree/adj.residuals_sva.sup.sex_invar_filtered.Rdata")
-# 
-# ## SVA - Unsupervised Sex 
-# load("/big_data/reffree/adj.residuals_sva.unsup.sex.Rdata")
-# adj.residuals.sva.unsup.sex<-adj.residuals.sva.unsup.sex[which(!(rownames(adj.residuals.sva.unsup.sex)%in%invar_in_beta_and_independent)),] 
-# save(adj.residuals.sva.unsup.sex, file="/big_data/reffree/adj.residuals_sva.unsup.sex_invar_filtered.Rdata")

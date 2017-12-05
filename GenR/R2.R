@@ -1,19 +1,20 @@
 
 
 ###################### Figure 1 (R2 plot)
-facs_counts<-read.csv("/big_data/redgar/cordblood/Updated_counts_WB_validation.csv")
+meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
 
-load("/big_data/redgar/cordblood/Count_like_data.Rdata")
-load("/big_data/redgar/cordblood/Components_sex.Rdata")
-load("/big_data/redgar/cordblood/Components_GA.Rdata")
+rownames(meta_cord)<-meta_cord$Sample_ID
+facs_counts<-meta_cord[,c(7:12)]
+colnames(facs_counts)<-c("NK Cells","B Cells","CD8 T Cells","CD4 T Cells","Granulocytes","Monocytes")
+
+load("~/RE_GenR/Count_like_data.Rdata")
+load("~/RE_GenR/Components_GA.Rdata")
+load("~/RE_GenR/Components_sex.Rdata")
 load("/big_data/reffree/Decon_pcs.rdata")
 load("/big_data/reffree/FACS_pcs.rdata")
 load("/big_data/reffree/Louie_predicted_WB_celltypes_Oct27_use_Louies_sorted.rdata")
 
 ## check all sample order
-rownames(facs_counts)<-facs_counts$X
-facs_counts$X<-NULL
-
 rownames(RC)<-rownames(RefFreeCounts)
 
 rownames(ruv_GA)<-rownames(RefFreeCounts)
@@ -335,7 +336,7 @@ plt_r2<-rbind(refactor_R2_plt, refreecellmix_R2_plt,facs_PCA_R2_plt,deconcounts_
               ruv_GA_R2_plt, ruv_sex_R2_plt,sv_sup_sex_R2_plt,sv_unsup_sex_R2_plt,sv_sup_gestage_R2_plt,sv_unsup_gestage_R2_plt)
 
 
-save(plt_r2, file="~/referencefree_cord_blood/R2_plot.RData")
+save(plt_r2, file="~/RE_GenR/R2_plot.RData")
 
 
 #################################################################################################################################
