@@ -25,7 +25,7 @@ rownames(sv_sup_gestage)<-rownames(RefFreeCounts)
 rownames(sv_unsup_gestage)<-rownames(RefFreeCounts)
 
 
-
+facs_counts<-facs_counts[which(rownames(facs_counts)%in%rownames(RefFreeCounts)),]
 RefFreeCounts<-RefFreeCounts[match(rownames(facs_counts), rownames(RefFreeCounts)),]
 identical(rownames(RefFreeCounts), rownames(facs_counts))
 
