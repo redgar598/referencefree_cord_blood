@@ -1,42 +1,15 @@
 ## load in testing data
-load("~/ewas3rdround/WB_betas_BMIQ_comabt_outlierremoved.rdata")
-beta<-as.data.frame(validation_betas.combat)
-
-## remove samples with missing facs data
-meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
-rownames(meta_cord)<-meta_cord$Sample_ID
-facs_counts<-meta_cord[,c(7:12)]
-nofacs<-names(which(apply(facs_counts, 1, function(x) sum(is.na(x)))>0))
-meta_cord<-meta_cord[which(!(meta_cord$Sample_ID%in%nofacs)),]
-meta_cord<-meta_cord[which(meta_cord$Sample_ID%in%colnames(beta)),]
-beta<-beta[,which(!(colnames(beta)%in%nofacs))]
+load("~/ewas3rdround/WB_betas_BMIQ_comabt_alloutliersremoved.rdata")
+##meg has kindly already filtered the WB object
+beta_variable<-as.data.frame(validation_betas.combat)
+dim(beta_variable)
 
 library(ggplot2)
 library(reshape)
 library(RCurl)
 
-  # only need to run this one so commented out for debugging
-  # ## remove invariable probes
-  x <- getURL("https://raw.githubusercontent.com/redgar598/Tissue_Invariable_450K_CpGs/master/Invariant_Blood_CpGs.csv")
-  y <- read.csv(text = x)
-  beta_invariable<-beta[which(rownames(beta)%in%y$CpG),]#105958/114204 of the independent invariable sites are in beta
-  Variation<-function(x) {quantile(x, c(0.9), na.rm=T)[[1]]-quantile(x, c(0.1), na.rm=T)[[1]]}
-  beta_ref_range<-sapply(1:nrow(beta_invariable), function(x) Variation(beta_invariable[x,]))
-  Invariable_in_beta<-beta_invariable[which(beta_ref_range<0.05),]
-  invar_in_beta_and_independent<-intersect(y$CpG, rownames(Invariable_in_beta)) #105529/114204 (95.4%)
-  length(invar_in_beta_and_independent)
-  save(invar_in_beta_and_independent, file="~/RE_GenR/invariable_cordblood_CpGs.Rdata")
-
-
-load("~/RE_GenR/invariable_cordblood_CpGs.Rdata")
-beta_variable<-beta[which(!(rownames(beta)%in%invar_in_beta_and_independent)),]#299693 
-dim(beta_variable)
-
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
-mval = apply(as.data.frame(beta), 1, Mval) # need mvalues for combat
-mval = as.data.frame(mval)
-mval = t(mval)
 
 mval_variable = apply(as.data.frame(beta_variable), 1, Mval) # need mvalues for combat
 mval_variable = as.data.frame(mval_variable)
@@ -50,7 +23,8 @@ mval_variable<-t(apply(mval_variable,1, NA2med))
 
 ## load meta data
 meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
-meta_cord<-meta_cord[match(colnames(beta), meta_cord$Sample_ID),]
+meta_cord<-meta_cord[which(meta_cord$Sample_ID%in%colnames(beta_variable)),]
+meta_cord<-meta_cord[match(colnames(beta_variable), meta_cord$Sample_ID),]
 identical(colnames(beta_variable), as.character(meta_cord$Sample_ID))
 
 meta_cord$GENDER<-as.factor(meta_cord$GENDER)
@@ -321,6 +295,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 })
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
+adj.residuals.ruv.sex <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
 save(adj.residuals.ruv.sex,file="~/RE_GenR/adj.residuals_ruv.sex.Rdata")
 
 rm(adj.residuals.ruv.sex)
