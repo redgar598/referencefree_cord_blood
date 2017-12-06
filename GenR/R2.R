@@ -5,15 +5,23 @@ meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
 
 rownames(meta_cord)<-meta_cord$Sample_ID
 facs_counts<-meta_cord[,c(7:12)]
-colnames(facs_counts)<-c("NK.cells","B.cells","CD8..T.cells","CD4..T.cells","Granulocytes","Mono")
+colnames(facs_counts)<-c("NK.cells","B.cells","CD8..T.cells","CD4..T.cells","Gran","Mono")
 
 
 load("~/RE_GenR/Count_like_data.Rdata")
 load("~/RE_GenR/Components_GA.Rdata")
 load("~/RE_GenR/Components_sex.Rdata")
-load("/big_data/reffree/Decon_pcs.rdata")
-load("/big_data/reffree/FACS_pcs.rdata")
-load("/big_data/reffree/Louie_predicted_WB_celltypes_Oct27_use_Louies_sorted.rdata")
+load("~/RE_GenR/decon_pcs.rdata")
+load("~/RE_GenR/facs_pcs.rdata")
+load("~/RE_GenR/GenR_cord_deconvolution_predicted_celltypes.rdata")
+
+load("C:/Users/040326/Documents/GenR/Count_like_data.Rdata")
+load("C:/Users/040326/Documents/GenR/Components_GA.Rdata")
+load("C:/Users/040326/Documents/GenR/decon_pcs.rdata")
+load("C:/Users/040326/Documents/GenR/facs_pcs.rdata")
+load("C:/Users/040326/Documents/GenR/GenR_cord_deconvolution_predicted_celltypes.rdata")
+load("C:/Users/040326/Documents/GenR/decon_pcs.rdata")
+
 
 ## check all sample order
 rownames(RC)<-rownames(RefFreeCounts)
@@ -32,6 +40,7 @@ identical(rownames(RefFreeCounts), rownames(facs_counts))
 RC<-RC[match(rownames(facs_counts), rownames(RC)),]
 identical(rownames(RC), rownames(facs_counts))
 
+facs_pcs<-facs_pcs[match(rownames(facs_counts), rownames(facs_pcs)),]
 identical(rownames(facs_pcs), rownames(facs_counts))
 
 decon_pcs<-decon_pcs[match(rownames(facs_counts), rownames(decon_pcs)),]
@@ -205,9 +214,8 @@ facs_PCA_R2<-do.call(rbind, facsPCA_R2)
 est_cell_counts<-as.data.frame(est_cell_counts)
 facs_count<-as.data.frame(facs_counts)
 
-Monocytes<-summary(lm(facs_count$Monocytes ~ 1+ est_cell_counts$Mono))$r.squared
-gran<-summary(lm(facs_count$Granulocytes ~ 1+ est_cell_counts$Gran))$r.squared
-nRBCs<-summary(lm(facs_count$nRBCs ~ 1+ est_cell_counts$nRBC))$r.squared
+Monocytes<-summary(lm(facs_count$Mono ~ 1+ est_cell_counts$Mono))$r.squared
+gran<-summary(lm(facs_count$Gran ~ 1+ est_cell_counts$Gran))$r.squared
 NK.cells<-summary(lm(facs_count$NK.cells ~ 1+ est_cell_counts$NK))$r.squared
 B.cells<-summary(lm(facs_count$B.cells ~ 1+ est_cell_counts$Bcell))$r.squared
 CD4Tcells<-summary(lm(facs_count$CD4..T.cells ~ 1+ est_cell_counts$CD4T))$r.squared
@@ -215,7 +223,7 @@ CD8Tcells<-summary(lm(facs_count$CD8..T.cells ~ 1+ est_cell_counts$CD8T))$r.squa
 
 
 deconcounts_R2<-data.frame(facs_celltype=colnames(facs_count), 
-                           R2_LRT=c(Monocytes,gran,nRBCs,NK.cells,B.cells,CD4Tcells,CD8Tcells), 
+                           R2_LRT=c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells), 
                            R2_overfit=NA, components=NA)
 
 
@@ -347,14 +355,12 @@ save(plt_r2, file="~/RE_GenR/R2_plot.RData")
 
 R2_inverse<-function(comp_df, method_name){
   r2s<-lapply(1:ncol(comp_df), function(comp){
-  data.frame(Method=method_name, comp=comp, r2=summary(lm(comp_df[,comp] ~ 1+ Monocytes + Granulocytes + nRBCs + NK.cells +  B.cells + CD4..T.cells + CD8..T.cells, data=facs_counts))$r.squared)})
+  data.frame(Method=method_name, comp=comp, r2=summary(lm(comp_df[,comp] ~ 1+ Mono + Gran  + NK.cells +  B.cells + CD4..T.cells + CD8..T.cells, data=facs_counts))$r.squared)})
   do.call(rbind, r2s)
 }
 
 ReFACTor<- R2_inverse(RC, "ReFACTor")
 decon1<- R2_inverse(decon_pcs[,1:5], "Deconvolution - PCA")
-decon2<-R2_inverse(est_cell_counts, "Deconvolution - Counts")
-facs1<- R2_inverse(facs_counts, "FACS - Drop One Cell Type")
 facs2<-R2_inverse(facs_pcs[,1:5], "FACS - PCA - Gold-Standard")
 reffreecellmix<-  R2_inverse(RefFreeCounts, "RefFreeCellMix")
 ruvga<-R2_inverse(ruv_GA, "RUV - GA")
@@ -364,8 +370,26 @@ sv2<-R2_inverse(sv_sup_sex, "SVA - Supervised Sex")
 sv3<-R2_inverse(sv_unsup_gestage, "SVA - Unsupervised GA")
 sv4<-R2_inverse(sv_unsup_sex, "SVA - Unsupervised Sex")
 
-R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs1, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
+## decon counts special case again
+decon2<-R2_inverse(est_cell_counts, "Deconvolution - Counts")
+
+
+Monocytes<-summary(lm(est_cell_counts$Mono ~ 1+ facs_count$Mono))$r.squared
+gran<-summary(lm(est_cell_counts$Gran ~ 1+ facs_count$Gran))$r.squared
+NK.cells<-summary(lm(est_cell_counts$NK ~ 1+ facs_count$NK.cells))$r.squared
+B.cells<-summary(lm(est_cell_counts$Bcell ~ 1+ facs_count$B.cells))$r.squared
+CD4Tcells<-summary(lm(est_cell_counts$CD4T ~ 1+ facs_count$CD4..T.cells))$r.squared
+CD8Tcells<-summary(lm(est_cell_counts$CD8T ~ 1+ facs_count$CD8..T.cells))$r.squared
+
+
+decon2<-data.frame(Method="Deconvolution - Counts", 
+                   comp=1:6,
+                   r2=c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
+
+R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
 R2_inverse_all$R2_inverse<-1-R2_inverse_all$r2
+
+save(R2_inverse_all, file="~/RE_GenR/R2_inverse_plot.RData" )
 
 
 
