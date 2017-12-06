@@ -11,16 +11,10 @@ colnames(facs_counts)<-c("NK.cells","B.cells","CD8..T.cells","CD4..T.cells","Gra
 load("~/RE_GenR/Count_like_data.Rdata")
 load("~/RE_GenR/Components_GA.Rdata")
 load("~/RE_GenR/Components_sex.Rdata")
-load("~/RE_GenR/decon_pcs.rdata")
-load("~/RE_GenR/facs_pcs.rdata")
-load("~/RE_GenR/GenR_cord_deconvolution_predicted_celltypes.rdata")
+load("~/ewas3rdround/decon_pcs.rdata")
+load("~/ewas3rdround/facs_pcs.rdata")
+load("~/ewas3rdround/GenR_cord_deconvolution_predicted_celltypes.rdata")
 
-load("C:/Users/040326/Documents/GenR/Count_like_data.Rdata")
-load("C:/Users/040326/Documents/GenR/Components_GA.Rdata")
-load("C:/Users/040326/Documents/GenR/decon_pcs.rdata")
-load("C:/Users/040326/Documents/GenR/facs_pcs.rdata")
-load("C:/Users/040326/Documents/GenR/GenR_cord_deconvolution_predicted_celltypes.rdata")
-load("C:/Users/040326/Documents/GenR/decon_pcs.rdata")
 
 
 ## check all sample order
@@ -371,9 +365,6 @@ sv3<-R2_inverse(sv_unsup_gestage, "SVA - Unsupervised GA")
 sv4<-R2_inverse(sv_unsup_sex, "SVA - Unsupervised Sex")
 
 ## decon counts special case again
-decon2<-R2_inverse(est_cell_counts, "Deconvolution - Counts")
-
-
 Monocytes<-summary(lm(est_cell_counts$Mono ~ 1+ facs_count$Mono))$r.squared
 gran<-summary(lm(est_cell_counts$Gran ~ 1+ facs_count$Gran))$r.squared
 NK.cells<-summary(lm(est_cell_counts$NK ~ 1+ facs_count$NK.cells))$r.squared
@@ -385,6 +376,9 @@ CD8Tcells<-summary(lm(est_cell_counts$CD8T ~ 1+ facs_count$CD8..T.cells))$r.squa
 decon2<-data.frame(Method="Deconvolution - Counts", 
                    comp=1:6,
                    r2=c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
+
+decon_unexplained<-data.frame(celltype=c("Mono","Gran","NK.cells","B.cells","CD8..T.cells","CD4..T.cells"),
+                              R2_inverse=1-c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
 
 R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
 R2_inverse_all$R2_inverse<-1-R2_inverse_all$r2

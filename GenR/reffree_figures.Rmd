@@ -71,25 +71,10 @@ th <-   theme(axis.text=element_text(size=12),
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
 ## load meta data
-meta_cord<-read.csv("/big_data/redgar/cordblood/24_wholebloods_samplesheet.csv")
+meta_summary<-read.csv("~/RE_GenR/summarytable.csv", sep=";")
+meta_summary$X.1<-NULL
 
-meta_celltypes<-meta_cord[,c(12,13,5:11)]
-female<-paste(round((length(which(meta_cord$Sex=="F"))/24)*100, 2),"%", sep="")
-GA<-round(mean(meta_cord$GA), 2)
-
-
-meta_celltypes<-meta_cord[,c(5:11)]
-mean_celltypes<-t(as.data.frame(round(colMeans(meta_celltypes),2)))
-sd_celltypes<-t(as.data.frame(round(apply(meta_celltypes,2, sd),2)))
-mean_celltypes<-t(as.data.frame(paste(mean_celltypes,"% (",sd_celltypes,")",  sep="")))
-
-lab<-data.frame(celltype="Mean % (sd)")
-
-meta_summary<-t(data.frame(Female=female,Mean_GA=GA,lab, mean_celltypes ))
-rownames(meta_summary)<-c("Female","Mean Gestational Age","FACS Cell Composition","Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
-meta_summary<-as.data.frame(meta_summary)
-meta_summary$genR<-""
-colnames(meta_summary)<-c("UBC data (n=24)", "GenR (n=196)")
+colnames(meta_summary)<-c("","UBC (n=24)", "GenR (n=191)")
 
 
 kable(meta_summary, format="latex", booktabs = T, caption = "Cohort Description")%>%
@@ -112,7 +97,7 @@ We can use the cord blood gold-standard correction to benchmark reference free m
 
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
-methods_table<-read.csv("methods_table.csv")
+methods_table<-read.csv("~/RE_GenR/methods_table.csv")
 colnames(methods_table)<-c("Method","Explanation","Type","Phenotype Required","Citation" )
 
 kable(methods_table, format="latex", booktabs = T, caption = "Method name used in comparison, explanation of method, whether it is reference free, reference based or semi reference free, whether the method models with a given phenotype for EWAS, and the relevant citation for the method.")%>%
@@ -124,8 +109,10 @@ kable(methods_table, format="latex", booktabs = T, caption = "Method name used i
 
 \newpage
 ```{r R21, fig.width=8,  fig.height=5, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Components from each method were included if they significantly (p<0.05) improved model fit.'}
-load("~/referencefree_cord_blood/R2_plot.RData")
-levels(plt_r2$facs_celltype)<-c("Monocytes","Granulocytes", "nRBCs","NK Cells", "B Cells", "CD4 T Cells","CD8 T Cells")
+
+
+load("~/RE_GenR/R2_plot.RData")
+levels(plt_r2$facs_celltype)<-c("NK Cells", "B Cells", "CD8 T Cells","CD4 T Cells","Granulocytes", "Monocytes")
 
 ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
   fillscale+
@@ -133,40 +120,39 @@ ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, col
   theme(axis.text.x = element_text(size=12,angle = 45, hjust = 1))
 
 
-ggsave("figures/Figure1R2.pdf", width = 9, height = 5, units = "in")
+ggsave("~/RE_GenR/Figure1R2.pdf", width = 9, height = 5, units = "in")
 ```
 
 
 \newpage
 ```{r R22, fig.width=8,  fig.height=7, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Models include components from each method if the component had significant likelihood ratio test p value (p<0.05). Expect for deconvolution - counts which gives measure of each cell type and R2 values are only for models with the deconvolution predicted cell type. Points represent each of 7 cell types, split by the method.'}
 ## mean boxplot
-ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.size=NA, fill="grey95")+
+ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(outlier.shape=NA, fill="grey95")+
   geom_point(aes(fill=facs_celltype),shape=21, color="black", size=2.25, position=position_jitter(width=0.2))+theme_bw()+
   ylab("R2 (FACS Cell Type Variance Accounted for)")+fillscale_cell+xlab("")+th+
   theme(axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1))
 
-ggsave("figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
+ggsave("~/RE_GenR/Figure2R2.pdf", width = 8, height = 7, units = "in")
 
 
 ```
 
-```{r}
-load("~/referencefree_cord_blood/R2_inverse_plot.RData" )
+```{r R23, fig.width=8,  fig.height=5, echo=FALSE,  message=FALSE,fig.cap='Variance not explained in each method component by FACS cell counts.Models used FACS cells counts to model components from several cell type estimation methods.'}
+load("~/RE_GenR/R2_inverse_plot.RData" )
 
-ggplot(R2_inverse_all, aes(Method, R2_inverse, fill=Method))+geom_boxplot(outlier.size=NA, fill="grey95")+
+ggplot(R2_inverse_all, aes(reorder(Method, R2_inverse, FUN=median), R2_inverse, fill=Method))+geom_boxplot(outlier.shape=NA, fill="grey95")+
   geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
   fillscale+
   ylab("R2 (Component Variance not Accounted for)")+xlab("")+th+
   theme(axis.text.x = element_text(size=12,angle = 45, hjust = 1))
 
-ggsave("figures/Figure3R2.pdf", width = 8, height = 7, units = "in")
+ggsave("~/RE_GenR/Figure3R2.pdf", width = 8, height = 7, units = "in")
 
 ```
 
-
 \newpage
 ```{r mae, fig.width=13,  fig.height=11, echo=FALSE,  message=FALSE,fig.cap='Mean absolute error(MAE) of CpGs compared to the gold-standard FACS-PCA corrected beta values. Errors shown are an average of all CpGs MAE. Boxes are coloured by the discretized MAE value to highlight method performance.'}
-load("~/referencefree_cord_blood/error_all.RData")
+load("~/RE_GenR/error_all.RData")
 
 error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
 error_all_unique<-error_all_unique[-1,]
@@ -184,55 +170,57 @@ ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
         panel.border = element_blank(),
         axis.ticks=element_blank())+xlab("")+ylab("")
 
-ggsave("figures/maehalf.pdf", width = 13, height = 11, units = "in")
+ggsave("~/RE_GenR/maehalf.pdf", width = 13, height = 11, units = "in")
 
 ```
 
 
-\newpage
-```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
-load("~/referencefree_cord_blood/correlation_distributions.RData")
-
-decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
-
-ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
-  geom_density_ridges(scale = 4) + theme_ridges() +
-fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
-  geom_vline(xintercept=decon_med_cor, color="#2171b5", size=0.75)
-
-ggsave("figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
-```
+# \newpage
+# ```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
+# load("~/RE_GenR/correlation_distributions.RData")
+# 
+# decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
+# 
+# ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
+#   geom_density_ridges(scale = 4) + theme_ridges() +
+# fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
+#   geom_vline(xintercept=decon_med_cor, color="#2171b5", size=0.75)
+# 
+# ggsave("~/RE_GenR/Figure3cor.pdf", width = 12, height = 10, units = "in")
+#```
 
 \newpage
 ```{r deconvolutioncounts, fig.width=9,  fig.height=11, echo=FALSE,  message=FALSE, fig.cap='Varibility in the predicted cell counts on data already corrected for cell type. Across methods the deconvolution predicted cell counts for each cell type are shown. '}
 
-load("/big_data/reffree/adj.residuals.sva.unsup.sex_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.sva.unsup.sex_predicted_cell_types.Rdata")
 sva.unsup.sex<- est_cell_counts
-load("/big_data/reffree/adj.residuals.sva.unsup.ga_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.sva.unsup.ga_predicted_cell_types.Rdata")
 sva.unsup.ga<- est_cell_counts
-load("/big_data/reffree/adj.residuals.sva.sup.sex_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.sva.sup.sex_predicted_cell_types.Rdata")
 sva.sup.sex<- est_cell_counts
-load("/big_data/reffree/adj.residuals.sva.sup.ga_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.sva.sup.ga_predicted_cell_types.Rdata")
 sva.sup.ga<- est_cell_counts
-load("/big_data/reffree/adj.residuals.ruv.sex_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.ruv.sex_predicted_cell_types.Rdata")
 ruv.sex<- est_cell_counts
-load("/big_data/reffree/adj.residuals.ruv.ga_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.ruv.ga_predicted_cell_types.Rdata")
 ruv.ga<- est_cell_counts
-load("/big_data/reffree/adj.residuals.reffreecellmix_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.reffreecellmix_predicted_cell_types.Rdata")
 cellmix<- est_cell_counts
-load("/big_data/reffree/adj.residuals.refactor_predicted_cell_types.Rdata")
+load("~/ewas3rdround/adj.residuals.refactor_predicted_cell_types.Rdata")
 refactor<- est_cell_counts
-load("/big_data/reffree/facs_predicted_cell_types.Rdata")
+load("~/ewas3rdround/facs_predicted_cell_types.Rdata")
 facs.counts<- est_cell_counts
-load("/big_data/reffree/facs_pcs_predicted_cell_types.Rdata")
+load("~/ewas3rdround/facs_pcs_predicted_cell_types.Rdata")
 facs.pcs.counts<- est_cell_counts
-load("/big_data/reffree/decon_predicted_cell_types.Rdata")
+load("~/ewas3rdround/decon_predicted_cell_types.Rdata")
 decon.counts<- est_cell_counts
-load("/big_data/reffree/decon_pcs_predicted_cell_types.Rdata")
+load("~/ewas3rdround/decon_pcs_predicted_cell_types.Rdata")
 decon.pcs.counts<- est_cell_counts
 
-load("/big_data/reffree/Louie_predicted_WB_celltypes_Oct27_use_Louies_sorted.rdata")
+load("~/ewas3rdround/GenR_cord_deconvolution_predicted_celltypes.rdata")
 uncorrected<- est_cell_counts
+
+
 plot.counts<- melt(rbind(cbind(as.data.frame(uncorrected), Method="uncorrected"),
                          cbind(as.data.frame(facs.counts), Method="FACS_counts"),
                          cbind(as.data.frame(facs.pcs.counts), Method="FACS_PCs"),
@@ -263,7 +251,7 @@ ggplot(plot.counts, aes(Method, value, fill=Method))+
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
 
-ggsave("figures/Figure4decon.pdf", width = 9, height = 11, units = "in")
+ggsave("~/RE_GenR/Figure4decon.pdf", width = 9, height = 11, units = "in")
 
 
 ```
@@ -271,27 +259,31 @@ ggsave("figures/Figure4decon.pdf", width = 9, height = 11, units = "in")
 \newpage
 ```{r deconvolutionmad, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Median absolute deviation (MAD) of predicted cell type counts from deconvolution. Boxes are coloured by the discretized MAD value to highlight method performance. '}
 
+# 
+# mads<- data.frame(FACS_counts=apply(facs.counts, 2, mad),
+#                   FACS_pcs=apply(facs.pcs.counts, 2, mad),
+#                   Decon_counts=apply(decon.counts, 2, mad),
+#                   Decon_pcs=apply(decon.pcs.counts, 2, mad),
+#                   sva.unsup.sex= apply(sva.unsup.sex, 2, mad),
+#                   sva.unsup.ga= apply(sva.unsup.ga, 2, mad),
+#                   sva.sup.sex= apply(sva.sup.sex, 2, mad),
+#                   sva.sup.ga= apply(sva.sup.ga, 2, mad),
+#                   ruv.sex= apply(ruv.sex, 2, mad),
+#                   ruv.ga= apply(ruv.ga, 2, mad),
+#                   cellmix= apply(cellmix, 2, mad),
+#                   refactor=apply(refactor, 2, mad),
+#                   uncorrected=apply(uncorrected, 2, mad)
+# 
+# )
+# 
+# mads$celltypes<- rownames(mads)
+# mads.melt<- melt(mads, id="celltypes")
 
-mads<- data.frame(FACS_counts=apply(facs.counts, 2, mad),
-                  FACS_pcs=apply(facs.pcs.counts, 2, mad),
-                  Decon_counts=apply(decon.counts, 2, mad),
-                  Decon_pcs=apply(decon.pcs.counts, 2, mad),
-                  sva.unsup.sex= apply(sva.unsup.sex, 2, mad),
-                  sva.unsup.ga= apply(sva.unsup.ga, 2, mad),
-                  sva.sup.sex= apply(sva.sup.sex, 2, mad),
-                  sva.sup.ga= apply(sva.sup.ga, 2, mad),
-                  ruv.sex= apply(ruv.sex, 2, mad),
-                  ruv.ga= apply(ruv.ga, 2, mad),
-                  cellmix= apply(cellmix, 2, mad),
-                  refactor=apply(refactor, 2, mad),
-                  uncorrected=apply(uncorrected, 2, mad)
 
-)
+load("~/RE_GenR/mads_melted.RData")
 
-mads$celltypes<- rownames(mads)
-mads.melt<- melt(mads, id="celltypes")
 
-mads.melt$col_mad<-cut(mads.melt$value, c(0,0.005, 0.01,0.05,0.1), right=FALSE, labels=c("<0.005","<0.01","<0.05",">0.05"))
+mads.melt$col_mad<-cut(mads.melt$value, c(0,0.005, 0.01,0.02,0.1), right=FALSE, labels=c("<0.005","<0.01","<0.02",">0.05"))
 
 levels(mads.melt$variable)<-c("FACS - Drop One Cell Type","FACS - PCA - Gold-Standard",
                               "Deconvolution - Drop One Cell Type","Deconvolution - PCA","SVA - Unsupervised Sex",
@@ -310,25 +302,52 @@ ggplot(mads.melt, aes(celltypes, variable, fill=col_mad))+
         panel.border = element_blank(),
         axis.ticks=element_blank())+xlab("")+ylab("")
 
-ggsave("figures/Figure5decon.pdf", width = 12, height = 10, units = "in")
+ggsave("~/RE_GenR/Figure5decon.pdf", width = 12, height = 10, units = "in")
 ```
 
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
-sex_table<-read.csv("Sex_EWAS_hit_tables.csv")
-colnames(sex_table)<-c("Method","Hits","True Positives","False Positives","False Negatives","Spearman","Kendall" )
+sex_table<-read.csv("~/ewas3rdround/Sex_EWAS_hit_tables.csv")
+colnames(sex_table)<-c("Method","Hits","True Positives",
+                       "False Positives","Spearman","Kendall",
+                       "Sensitivity","Specificity")
+
+
 levels(sex_table$Method)<-c("Deconvolution - PCA","Deconvolution - Drop One Cell Type",
                             "FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
-                            "ReFACTor","RefFreeCellMix","RUV","SVA - Supervised","SVA - Unsupervised","Uncorrected")
+                            "ReFACTor","RefFreeCellMix","RUV","SVA - Supervised",
+                            "SVA - Unsupervised","Uncorrected")
 
 sex_table$Spearman<-round(sex_table$Spearman, 3)
-sex_table$Kendall<-round(sex_table$Kendall, 3)
+#sex_table$Kendall<-round(sex_table$Kendall, 3)
+sex_table$Kendall<-NULL
 
-sex_table[1,3:7]<-"-"
 
-kable(sex_table, format="latex", booktabs = T, caption = "Comparison of cell type correction methods through EWAS results. EWAS was performed for sex on each corrected dataset. True and false positives and negatives were cvalculated in comparison to the gold-standard FACS - PCA correction. Spearman is the correlation coefficient for all CpG p values, and Kendall is the rank correlation coefficient for the top 1000 CpG p values.")%>%
-  kable_styling(font_size = 7,(latex_options = c("HOLD_position")))
+
+kable(sex_table, format="latex", booktabs = T, caption = "Comparison of cell type correction methods through EWAS results. EWAS was performed for sex on each corrected dataset. True and false positives were calculated in comparison to the sex differentially methylated CpGs in sorted cell type data (n=18).  Spearman is the correlation coefficient for all CpG p values, and Kendall is the rank correlation coefficient for the top 1000 CpG p values.")%>%  kable_styling(font_size = 7,(latex_options = c("HOLD_position")))
 
 ```
 
+
+```{r, echo=FALSE,  message=FALSE}
+ga_table<-read.csv("~/ewas3rdround/ga_EWAS_hit_tables.csv")
+colnames(ga_table)<-c("Method","Hits","True Positives",
+                       "False Positives","Spearman","Kendall",
+                       "Sensitivity","Specificity")
+
+
+levels(ga_table$Method)<-c("Deconvolution - PCA","Deconvolution - Drop One Cell Type",
+                            "FACS - PCA - Gold-Standard","FACS - Drop One Cell Type",
+                            "ReFACTor","RefFreeCellMix","RUV","SVA - Supervised",
+                            "SVA - Unsupervised","Uncorrected")
+
+ga_table$Spearman<-round(ga_table$Spearman, 3)
+#ga_table$Kendall<-round(ga_table$Kendall, 3)
+ga_table$Kendall<-NULL
+
+
+
+kable(ga_table, format="latex", booktabs = T, caption = "Comparison of cell type correction methods through EWAS results. EWAS was performed for GA on each corrected dataset. True and false positives were calculated in comparison to the GA differentially methylated CpGs in sorted cell type data (n=18).  Spearman is the correlation coefficient for all CpG p values, and Kendall is the rank correlation coefficient for the top 1000 CpG p values.")%>%  kable_styling(font_size = 7,(latex_options = c("HOLD_position")))
+
+```
 
