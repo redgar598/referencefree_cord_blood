@@ -309,7 +309,7 @@ ggsave("~/RE_GenR/Figure5decon.pdf", width = 12, height = 10, units = "in")
 ```{r, echo=FALSE,  message=FALSE}
 sex_table<-read.csv("~/ewas3rdround/Sex_EWAS_hit_tables.csv")
 colnames(sex_table)<-c("Method","Hits","True Positives",
-                       "False Positives","Spearman","Kendall",
+                       "False Positives","False Negatives","Spearman","Kendall",
                        "Sensitivity","Specificity")
 
 
@@ -332,7 +332,7 @@ kable(sex_table, format="latex", booktabs = T, caption = "Comparison of cell typ
 ```{r, echo=FALSE,  message=FALSE}
 ga_table<-read.csv("~/ewas3rdround/ga_EWAS_hit_tables.csv")
 colnames(ga_table)<-c("Method","Hits","True Positives",
-                       "False Positives","Spearman","Kendall",
+                       "False Positives","False Negatives","Spearman","Kendall",
                        "Sensitivity","Specificity")
 
 
