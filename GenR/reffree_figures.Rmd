@@ -157,14 +157,14 @@ load("~/RE_GenR/error_all.RData")
 error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
 error_all_unique<-error_all_unique[-1,]
 
-error_all_unique$col_error<-cut(error_all_unique$mn_cpg_mae, c(0,0.001, 0.005,0.0075,0.01), right=FALSE, labels=c("<0.001","<0.005","<0.0075",">0.0075"))
+error_all_unique$col_error<-cut(error_all_unique$mn_cpg_mae, c(0,0.001, 0.005,0.0075,0.01,0.05), right=FALSE, labels=c("<0.001","<0.005","<0.0075","<0.01",">0.01"))
 
 ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
   geom_tile(color = "black",size=0.5) +
   geom_text(aes(label = round(mn_cpg_mae,3)), color="black", size=5)+theme_bw()+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_blank())+
-  scale_fill_manual(values=c("#084594","#4292c6","#9ecae1","#deebf7"), name="MAE")+th+
+  scale_fill_manual(values=c("#084594","#4292c6","#9ecae1","#c5e7f9","#deebf7",""), name="MAE")+th+
   theme(axis.text.y=element_text(size=12,color="black"),
         axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1),
         panel.border = element_blank(),
@@ -175,19 +175,19 @@ ggsave("~/RE_GenR/maehalf.pdf", width = 13, height = 11, units = "in")
 ```
 
 
-# \newpage
-# ```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
-# load("~/RE_GenR/correlation_distributions.RData")
-# 
-# decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
-# 
-# ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
-#   geom_density_ridges(scale = 4) + theme_ridges() +
-# fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
-#   geom_vline(xintercept=decon_med_cor, color="#2171b5", size=0.75)
-# 
-# ggsave("~/RE_GenR/Figure3cor.pdf", width = 12, height = 10, units = "in")
-#```
+ \newpage
+```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
+ load("~/RE_GenR/correlation_distributions.RData")
+
+ decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
+
+ ggplot(cor_to_GS, aes(x = correlation, y = reorder(method, correlation, FUN=median), fill=method)) +
+   geom_density_ridges(scale = 4) + theme_ridges() +
+ fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
+   geom_vline(xintercept=decon_med_cor, color="#2171b5", size=0.75)
+
+ggsave("~/RE_GenR/Figure3cor.pdf", width = 12, height = 10, units = "in")
+```
 
 \newpage
 ```{r deconvolutioncounts, fig.width=9,  fig.height=11, echo=FALSE,  message=FALSE, fig.cap='Varibility in the predicted cell counts on data already corrected for cell type. Across methods the deconvolution predicted cell counts for each cell type are shown. '}

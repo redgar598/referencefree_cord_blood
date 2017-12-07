@@ -28,7 +28,7 @@ MSE_compare_all<-function(betas, method2_name){
     err<-method_MAE(adj.residuals, "Deconvolution - Drop One Cell Type")
     error_GS<-rbind(error_GS, err)
     
-    ## FACS PCA
+    ## FACS drop
     load("~/ewas3rdround/facs_corrected_betas.Rdata")
     err<-method_MAE(adj.residuals, "FACS - Drop One Cell Type")
     error_GS<-rbind(error_GS, err)
@@ -113,7 +113,7 @@ method_adj<-as.data.frame(adj.residuals)
 err<-MSE_compare_all(method_adj, "Deconvolution - Drop One Cell Type")
 error_all<-rbind(error_all, err)
 
-## FACS PCA
+## FACS drop
 load("~/ewas3rdround/facs_corrected_betas.Rdata")
 method_adj<-as.data.frame(adj.residuals)
 err<-MSE_compare_all(method_adj, "FACS - Drop One Cell Type")

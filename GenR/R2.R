@@ -377,8 +377,12 @@ decon2<-data.frame(Method="Deconvolution - Counts",
                    comp=1:6,
                    r2=c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
 
-decon_unexplained<-data.frame(celltype=c("Mono","Gran","NK.cells","B.cells","CD8..T.cells","CD4..T.cells"),
-                              R2_inverse=1-c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
+decon_R2<-data.frame(celltype=c("Mono","Gran","NK.cells","B.cells","CD8..T.cells","CD4..T.cells"),
+                              R2_est_facs=c(Monocytes,gran,NK.cells,B.cells,CD4Tcells,CD8Tcells))
+
+decon_R2<-merge(decon_R2,deconcounts_R2[,c(1,2)],by.x="celltype",by.y="facs_celltype")
+colnames(decon_R2)<-c("celltype","R2_est_facs","R2_facs_est")
+write.csv(decon_R2, file="~/RE_GenR/decon_R2_bothways.csv")
 
 R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
 R2_inverse_all$R2_inverse<-1-R2_inverse_all$r2
