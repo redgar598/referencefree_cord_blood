@@ -70,8 +70,8 @@ th <-   theme(axis.text=element_text(size=12),
 ```
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
-## load meta data
-meta_summary<-read.csv("~/RE_GenR/summarytable.csv", sep=";")
+## load summary table made in excel
+meta_summary<-read.csv("~/ewas3rdround/summarytable.csv", sep=";")
 meta_summary$X.1<-NULL
 
 colnames(meta_summary)<-c("","UBC (n=24)", "GenR (n=191)")
@@ -97,7 +97,7 @@ We can use the cord blood gold-standard correction to benchmark reference free m
 
 \newpage
 ```{r, echo=FALSE,  message=FALSE}
-methods_table<-read.csv("~/RE_GenR/methods_table.csv")
+methods_table<-read.csv("~/ewas3rdround/methods_table.csv")
 colnames(methods_table)<-c("Method","Explanation","Type","Phenotype Required","Citation" )
 
 kable(methods_table, format="latex", booktabs = T, caption = "Method name used in comparison, explanation of method, whether it is reference free, reference based or semi reference free, whether the method models with a given phenotype for EWAS, and the relevant citation for the method.")%>%
@@ -111,7 +111,7 @@ kable(methods_table, format="latex", booktabs = T, caption = "Method name used i
 ```{r R21, fig.width=8,  fig.height=5, echo=FALSE,  message=FALSE,fig.cap='Variance explained in each FACS cell count by models using components from several cell type estimation methods. Models were fit used a nested-models likelihood ratio test. Components from each method were included if they significantly (p<0.05) improved model fit.'}
 
 
-load("~/RE_GenR/R2_plot.RData")
+load("~/ewas3rdround/R2_plot.RData")
 levels(plt_r2$facs_celltype)<-c("NK Cells", "B Cells", "CD8 T Cells","CD4 T Cells","Granulocytes", "Monocytes")
 
 ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
@@ -120,7 +120,7 @@ ggplot(plt_r2, aes(facs_celltype, R2_LRT, fill=method))+geom_point(shape=21, col
   theme(axis.text.x = element_text(size=12,angle = 45, hjust = 1))
 
 
-ggsave("~/RE_GenR/Figure1R2.pdf", width = 9, height = 5, units = "in")
+ggsave("~/ewas3rdround/figures/Figure1R2.pdf", width = 9, height = 5, units = "in")
 ```
 
 
@@ -132,13 +132,13 @@ ggplot(plt_r2, aes(reorder(method, R2_LRT, FUN=median), R2_LRT))+geom_boxplot(ou
   ylab("R2 (FACS Cell Type Variance Accounted for)")+fillscale_cell+xlab("")+th+
   theme(axis.text.x = element_text(size=12,color="black",angle = 90, hjust = 1))
 
-ggsave("~/RE_GenR/Figure2R2.pdf", width = 8, height = 7, units = "in")
+ggsave("~/ewas3rdround/figures/Figure2R2.pdf", width = 8, height = 7, units = "in")
 
 
 ```
 
 ```{r R23, fig.width=8,  fig.height=5, echo=FALSE,  message=FALSE,fig.cap='Variance not explained in each method component by FACS cell counts.Models used FACS cells counts to model components from several cell type estimation methods.'}
-load("~/RE_GenR/R2_inverse_plot.RData" )
+load("~/ewas3rdround/R2_inverse_plot.RData" )
 
 ggplot(R2_inverse_all, aes(reorder(Method, R2_inverse, FUN=median), R2_inverse, fill=Method))+geom_boxplot(outlier.shape=NA, fill="grey95")+
   geom_point(shape=21, color="black", size=2, position=position_jitter(width=0.2))+theme_bw()+
@@ -146,16 +146,17 @@ ggplot(R2_inverse_all, aes(reorder(Method, R2_inverse, FUN=median), R2_inverse, 
   ylab("R2 (Component Variance not Accounted for)")+xlab("")+th+
   theme(axis.text.x = element_text(size=12,angle = 45, hjust = 1))
 
-ggsave("~/RE_GenR/Figure3R2.pdf", width = 8, height = 7, units = "in")
+ggsave("~/ewas3rdround/figures/Figure3R2.pdf", width = 8, height = 7, units = "in")
 
 ```
 
 \newpage
 ```{r mae, fig.width=13,  fig.height=11, echo=FALSE,  message=FALSE,fig.cap='Mean absolute error(MAE) of CpGs compared to the gold-standard FACS-PCA corrected beta values. Errors shown are an average of all CpGs MAE. Boxes are coloured by the discretized MAE value to highlight method performance.'}
-load("~/RE_GenR/error_all.RData")
+load("~/ewas3rdround/error_all.RData")
 
-error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
-error_all_unique<-error_all_unique[-1,]
+error_all_unique<-error_all
+#error_all_unique<-error_all[!duplicated(error_all$mn_cpg_mae),]
+#error_all_unique<-error_all_unique[-1,]
 
 error_all_unique$col_error<-cut(error_all_unique$mn_cpg_mae, c(0,0.001, 0.005,0.0075,0.01,0.05), right=FALSE, labels=c("<0.001","<0.005","<0.0075","<0.01",">0.01"))
 
@@ -170,14 +171,14 @@ ggplot(error_all_unique, aes(method_1,method_2, fill = col_error)) +
         panel.border = element_blank(),
         axis.ticks=element_blank())+xlab("")+ylab("")
 
-ggsave("~/RE_GenR/maehalf.pdf", width = 13, height = 11, units = "in")
+ggsave("~/ewas3rdround/figures/maehalf.pdf", width = 13, height = 11, units = "in")
 
 ```
 
 
  \newpage
 ```{r correlation, fig.width=12,  fig.height=10, echo=FALSE,  message=FALSE, fig.cap='Distributions of correlation of beta values across samples at each CpG. Betas across samples were correlated between each method and the gold-standard FACS-PCA corrected betas. Vertical blue line shows the median correlation across all CpGs for the Deconvolution PCA corrected betas.'}
- load("~/RE_GenR/correlation_distributions.RData")
+ load("~/ewas3rdround/correlation_distributions.RData")
 
  decon_med_cor<-median(cor_to_GS$correlation[which(cor_to_GS$method=="Deconvolution - PCA")])
 
@@ -186,7 +187,7 @@ ggsave("~/RE_GenR/maehalf.pdf", width = 13, height = 11, units = "in")
  fillscale   +xlab("CpG Correlation to Gold Standard Betas")+ylab("")+th+
    geom_vline(xintercept=decon_med_cor, color="#2171b5", size=0.75)
 
-ggsave("~/RE_GenR/Figure3cor.pdf", width = 12, height = 10, units = "in")
+ggsave("~/ewas3rdround/figures/Figure3cor.pdf", width = 12, height = 10, units = "in")
 ```
 
 \newpage
@@ -251,7 +252,7 @@ ggplot(plot.counts, aes(Method, value, fill=Method))+
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
 
-ggsave("~/RE_GenR/Figure4decon.pdf", width = 9, height = 11, units = "in")
+ggsave("~/ewas3rdround/figures/Figure4decon.pdf", width = 9, height = 11, units = "in")
 
 
 ```
@@ -280,7 +281,7 @@ ggsave("~/RE_GenR/Figure4decon.pdf", width = 9, height = 11, units = "in")
 # mads.melt<- melt(mads, id="celltypes")
 
 
-load("~/RE_GenR/mads_melted.RData")
+load("~/ewas3rdround/mads_melted.RData")
 
 
 mads.melt$col_mad<-cut(mads.melt$value, c(0,0.005, 0.01,0.02,0.1), right=FALSE, labels=c("<0.005","<0.01","<0.02",">0.05"))
@@ -302,7 +303,7 @@ ggplot(mads.melt, aes(celltypes, variable, fill=col_mad))+
         panel.border = element_blank(),
         axis.ticks=element_blank())+xlab("")+ylab("")
 
-ggsave("~/RE_GenR/Figure5decon.pdf", width = 12, height = 10, units = "in")
+ggsave("~/ewas3rdround/figures/Figure5decon.pdf", width = 12, height = 10, units = "in")
 ```
 
 \newpage

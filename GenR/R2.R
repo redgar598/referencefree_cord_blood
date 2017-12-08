@@ -8,9 +8,9 @@ facs_counts<-meta_cord[,c(7:12)]
 colnames(facs_counts)<-c("NK.cells","B.cells","CD8..T.cells","CD4..T.cells","Gran","Mono")
 
 
-load("~/RE_GenR/Count_like_data.Rdata")
-load("~/RE_GenR/Components_GA.Rdata")
-load("~/RE_GenR/Components_sex.Rdata")
+load("~/ewas3rdround/Count_like_data.Rdata")
+load("~/ewas3rdround/Components_GA.Rdata")
+load("~/ewas3rdround/Components_sex.Rdata")
 load("~/ewas3rdround/decon_pcs.rdata")
 load("~/ewas3rdround/facs_pcs.rdata")
 load("~/ewas3rdround/GenR_cord_deconvolution_predicted_celltypes.rdata")
@@ -338,7 +338,7 @@ plt_r2<-rbind(refactor_R2_plt, refreecellmix_R2_plt,facs_PCA_R2_plt,deconcounts_
               ruv_GA_R2_plt, ruv_sex_R2_plt,sv_sup_sex_R2_plt,sv_unsup_sex_R2_plt,sv_sup_gestage_R2_plt,sv_unsup_gestage_R2_plt)
 
 
-save(plt_r2, file="~/RE_GenR/R2_plot.RData")
+save(plt_r2, file="~/ewas3rdround/R2_plot.RData")
 
 
 #################################################################################################################################
@@ -382,12 +382,12 @@ decon_R2<-data.frame(celltype=c("Mono","Gran","NK.cells","B.cells","CD8..T.cells
 
 decon_R2<-merge(decon_R2,deconcounts_R2[,c(1,2)],by.x="celltype",by.y="facs_celltype")
 colnames(decon_R2)<-c("celltype","R2_est_facs","R2_facs_est")
-write.csv(decon_R2, file="~/RE_GenR/decon_R2_bothways.csv")
+write.csv(decon_R2, file="~/ewas3rdround/decon_R2_bothways.csv")
 
 R2_inverse_all<-rbind(ReFACTor,decon1,decon2, facs2, reffreecellmix,ruvga,ruvsex, sv1,sv2,sv3,sv4)
 R2_inverse_all$R2_inverse<-1-R2_inverse_all$r2
 
-save(R2_inverse_all, file="~/RE_GenR/R2_inverse_plot.RData" )
+save(R2_inverse_all, file="~/ewas3rdround/R2_inverse_plot.RData" )
 
 
 

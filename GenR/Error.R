@@ -91,10 +91,6 @@ MSE_compare_all<-function(betas, method2_name){
   
     error_GS}
 
-# load("~/ewas3rdround/adj.residuals_sva.unsup.sex.Rdata")
-# method_adj<-as.data.frame(adj.residuals.sva.unsup.sex)
-# MSE_compare_all(method_adj, "SVA - Unsupervised Sex")
-
 
 ## GS
 load("~/ewas3rdround/facs_pcs_corrected_betas.Rdata")
@@ -174,7 +170,7 @@ err<-MSE_compare_all(method_adj, "SVA - Unsupervised Sex")
 error_all<-rbind(error_all, err)
 
 
-save(error_all, file="~/RE_GenR/error_all.RData")
+save(error_all, file="~/ewas3rdround/error_all.RData")
 
 
 
@@ -264,5 +260,5 @@ err<-cor_GS(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
 cor_to_GS<-rbind(cor_to_GS, err)
 rm(adj.residuals.sva.unsup.sex)
 
-save(cor_to_GS, file="~/RE_GenR/correlation_distributions.RData")
+save(cor_to_GS, file="~/ewas3rdround/correlation_distributions.RData")
 

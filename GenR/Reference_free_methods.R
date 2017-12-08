@@ -47,23 +47,23 @@ RefFreeCounts<-as.data.frame(testArray1$Omega)
 
 ################### ReFACTor
 #https://github.com/cozygene/refactor/tree/master/R
-source("~/RE_GenR/refactor.R")
+source("~/ewas3rdround/refactor.R")
 
   # only need to run this one so commented out for debugging
   beta_df<-as.data.frame(beta_variable)
   beta_df$ID<-rownames(beta_df)
   beta_df<-beta_df[,c(ncol(beta_df), 1:(ncol(beta_df)-1))]
-  write.table(beta_df, file="~/RE_GenR/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
+  write.table(beta_df, file="~/ewas3rdround/betas_for_refactor.txt", quote=F, row.names=F,sep="\t")
 
 k = 5
-datafile = "~/RE_GenR/betas_for_refactor.txt"
+datafile = "~/ewas3rdround/betas_for_refactor.txt"
 
 results <- refactor(datafile,k)
 RC <- as.data.frame(results$refactor_components) # Extract the ReFACTor components
 
 
 ## save for plotting
-save(RefFreeCounts, RC, file="~/RE_GenR/Count_like_data.Rdata")
+save(RefFreeCounts, RC, file="~/ewas3rdround/Count_like_data.Rdata")
 
 
 
@@ -102,7 +102,7 @@ ctl<-(rownames(mval_variable)%in%probes)
 fit = RUVfit(data=mval_variable, design=meta_cord$GESTBIR,  ctl=ctl, k=5, method=c("ruv4"))
 ruv_GA<-t(fit$W)
 
-save(sv_unsup_gestage, sv_sup_gestage, ruv_GA, file="~/RE_GenR/Components_GA.Rdata")
+save(sv_unsup_gestage, sv_sup_gestage, ruv_GA, file="~/ewas3rdround/Components_GA.Rdata")
 
 
 
@@ -142,7 +142,7 @@ ctl<-(rownames(mval_variable)%in%probes)
 fit = RUVfit(data=mval_variable, design=as.numeric(meta_cord$GENDER),  ctl=ctl, k=5, method=c("ruv4"))
 ruv_sex<-t(fit$W)
 
-save(sv_unsup_sex, sv_sup_sex, ruv_sex, file="~/RE_GenR/Components_sex.Rdata")
+save(sv_unsup_sex, sv_sup_sex, ruv_sex, file="~/ewas3rdround/Components_sex.Rdata")
 
 
 
@@ -150,7 +150,7 @@ save(sv_unsup_sex, sv_sup_sex, ruv_sex, file="~/RE_GenR/Components_sex.Rdata")
 ##############################################################################################################################
 #### Correction
 ##############################################################################################################################
-load("~/RE_GenR/Count_like_data.Rdata")
+load("~/ewas3rdround/Count_like_data.Rdata")
 ################## Corrected Betas reffreecellmix
 colnames(RefFreeCounts)<-paste("comp", colnames(RefFreeCounts), sep="")
 
@@ -169,7 +169,7 @@ adj.residuals.reffreecellmix <- residuals+matrix(apply(beta_variable, 1, mean), 
 # To make sure we do not induce any NAs into the dataset when we convert the beta values back M-values (by log2 transformation), we need to ensure we do not have any corrected beta values that are greater or equal to zero or any beta values that are greater than 1.
 # adj.residuals.reffreecellmix[adj.residuals.reffreecellmix<=0] <- 0.001 # convert any values that are less than or equal to zero to 0.001
 # adj.residuals.reffreecellmix[adj.residuals.reffreecellmix>1] <- 0.999 # convert any values that are greater than 1 to 0.999
-save(adj.residuals.reffreecellmix,file="~/RE_GenR/adj.residuals_reffreecellmix.Rdata")
+save(adj.residuals.reffreecellmix,file="~/ewas3rdround/adj.residuals_reffreecellmix.Rdata")
 
 rm(adj.residuals.reffreecellmix)
 rm(betas.lm)
@@ -194,7 +194,7 @@ adj.residuals.refactor <- residuals+matrix(apply(beta_variable, 1, mean), nrow =
 # To make sure we do not induce any NAs into the dataset when we convert the beta values back M-values (by log2 transformation), we need to ensure we do not have any corrected beta values that are greater or equal to zero or any beta values that are greater than 1.
 # adj.residuals.refactor[adj.residuals.refactor<=0] <- 0.001 # convert any values that are less than or equal to zero to 0.001
 # adj.residuals.refactor[adj.residuals.refactor>1] <- 0.999 # convert any values that are greater than 1 to 0.999
-save(adj.residuals.refactor,file="~/RE_GenR/adj.residuals_refactor.Rdata")
+save(adj.residuals.refactor,file="~/ewas3rdround/adj.residuals_refactor.Rdata")
 
 rm(adj.residuals.refactor)
 rm(betas.lm)
@@ -203,7 +203,7 @@ gc()
 
 
 #####################
-load("~/RE_GenR/Components_GA.Rdata")
+load("~/ewas3rdround/Components_GA.Rdata")
 
 
 ##################### Corrected Betas SVA unsup GA
@@ -215,7 +215,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.sva.unsup.ga <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.sva.unsup.ga,file="~/RE_GenR/adj.residuals_sva.unsup.ga.Rdata")
+save(adj.residuals.sva.unsup.ga,file="~/ewas3rdround/adj.residuals_sva.unsup.ga.Rdata")
 
 rm(adj.residuals.sva.unsup.ga)
 rm(betas.lm)
@@ -230,7 +230,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.sva.sup.ga <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.sva.sup.ga,file="~/RE_GenR/adj.residuals_sva.sup.ga.Rdata")
+save(adj.residuals.sva.sup.ga,file="~/ewas3rdround/adj.residuals_sva.sup.ga.Rdata")
 
 rm(adj.residuals.sva.sup.ga)
 rm(betas.lm)
@@ -245,7 +245,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.ruv.ga <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.ruv.ga,file="~/RE_GenR/adj.residuals_ruv.ga.Rdata")
+save(adj.residuals.ruv.ga,file="~/ewas3rdround/adj.residuals_ruv.ga.Rdata")
 
 rm(adj.residuals.ruv.ga)
 rm(betas.lm)
@@ -254,7 +254,7 @@ gc()
 
 
 #####################
-load("~/RE_GenR/Components_sex.Rdata")
+load("~/ewas3rdround/Components_sex.Rdata")
 
 
 ##################### Corrected Betas SVA unsup sex
@@ -266,7 +266,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.sva.unsup.sex <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.sva.unsup.sex,file="~/RE_GenR/adj.residuals_sva.unsup.sex.Rdata")
+save(adj.residuals.sva.unsup.sex,file="~/ewas3rdround/adj.residuals_sva.unsup.sex.Rdata")
 
 rm(adj.residuals.sva.unsup.sex)
 rm(betas.lm)
@@ -281,7 +281,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.sva.sup.sex <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.sva.sup.sex,file="~/RE_GenR/adj.residuals_sva.sup.sex.Rdata")
+save(adj.residuals.sva.sup.sex,file="~/ewas3rdround/adj.residuals_sva.sup.sex.Rdata")
 
 rm(adj.residuals.sva.sup.sex)
 rm(betas.lm)
@@ -296,7 +296,7 @@ betas.lm <- apply(beta_variable, 1, function(x){
 residuals <- t(sapply(betas.lm, function(x)residuals(summary(x))))
 colnames(residuals) <- colnames(beta_variable) # re-name residuals columns with sample names
 adj.residuals.ruv.sex <- residuals+matrix(apply(beta_variable, 1, mean), nrow = nrow(residuals), ncol = ncol(residuals))
-save(adj.residuals.ruv.sex,file="~/RE_GenR/adj.residuals_ruv.sex.Rdata")
+save(adj.residuals.ruv.sex,file="~/ewas3rdround/adj.residuals_ruv.sex.Rdata")
 
 rm(adj.residuals.ruv.sex)
 rm(betas.lm)

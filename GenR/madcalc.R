@@ -45,4 +45,4 @@ mads<- data.frame(FACS_counts=apply(facs.counts, 2, mad),
 
 mads$celltypes<- rownames(mads)
 mads.melt<- melt(mads, id="celltypes")
-save(mads.melt, file="~/RE_GenR/mads_melted.RData")
+save(mads.melt, file="~/ewas3rdround/mads_melted.RData")
