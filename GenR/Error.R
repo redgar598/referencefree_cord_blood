@@ -262,3 +262,176 @@ rm(adj.residuals.sva.unsup.sex)
 
 save(cor_to_GS, file="~/ewas3rdround/correlation_distributions.RData")
 
+########################### correlation all
+library(hydroGOF)
+
+
+cor_compare_all<-function(betas, method2_name){
+  
+  ## function to get MAE for each dataframe
+  method_cor<-function(adj.res, method_name){
+    metod_beta<-as.data.frame(adj.res)
+    correlation<-sapply(1:nrow(adj.res), function(x) cor(as.numeric(adj.res[x,]), as.numeric(betas[x,]), use="complete.obs"))
+    data.frame(method_1=method_name,method_2=method2_name, correlation=mean(correlation))
+  }
+  
+  
+  
+  ## load GS
+  load("~/ewas3rdround/facs_pcs_corrected_betas.Rdata")
+  gold_standard<-as.data.frame(adj.residuals)
+  error_GS<-method_cor(gold_standard, "FACS - PCA - Gold-Standard")
+  
+  ## Decon PCA
+  load("~/ewas3rdround/decon_pcs_corrected_betas.Rdata")
+  err<-method_cor(adj.residuals, "Deconvolution - PCA")
+  error_GS<-rbind(error_GS, err)
+  
+  ## Decon counts
+  load("~/ewas3rdround/decon_corrected_betas.Rdata")
+  err<-method_cor(adj.residuals, "Deconvolution - Drop One Cell Type")
+  error_GS<-rbind(error_GS, err)
+  
+  ## FACS drop
+  load("~/ewas3rdround/facs_corrected_betas.Rdata")
+  err<-method_cor(adj.residuals, "FACS - Drop One Cell Type")
+  error_GS<-rbind(error_GS, err)
+  
+  
+  ## Uncorrected
+  load("~/ewas3rdround/WB_betas_BMIQ_comabt_alloutliersremoved.rdata")
+  err<-method_cor(validation_betas.combat, "Uncorrected")
+  error_GS<-rbind(error_GS, err)
+  
+  ## Refactor
+  load("~/ewas3rdround/adj.residuals_refactor.Rdata")
+  err<-method_cor(adj.residuals.refactor, "ReFACTor")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.refactor)
+  
+  ## reffreecellmix
+  load("~/ewas3rdround/adj.residuals_reffreecellmix.Rdata")
+  err<-method_cor(adj.residuals.reffreecellmix, "RefFreeCellMix")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.reffreecellmix)
+  
+  ## RUV GA
+  load("~/ewas3rdround/adj.residuals_ruv.ga.Rdata")
+  err<-method_cor(adj.residuals.ruv.ga, "RUV - GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.ruv.ga)
+  
+  ## RUV sex
+  load("~/ewas3rdround/adj.residuals_ruv.sex.Rdata")
+  err<-method_cor(adj.residuals.ruv.sex, "RUV - Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.ruv.sex)
+  
+  
+  
+  ## SVA - Supervised GA 
+  load("~/ewas3rdround/adj.residuals_sva.sup.ga.Rdata")
+  err<-method_cor(adj.residuals.sva.sup.ga, "SVA - Supervised GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.sup.ga)
+  
+  ## SVA - Unsupervised GA 
+  load("~/ewas3rdround/adj.residuals_sva.unsup.ga.Rdata")
+  err<-method_cor(adj.residuals.sva.unsup.ga, "SVA - Unsupervised GA")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.unsup.ga)
+  
+  ## SVA - Supervised Sex 
+  load("~/ewas3rdround/adj.residuals_sva.sup.sex.Rdata")
+  err<-method_cor(adj.residuals.sva.sup.sex, "SVA - Supervised Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.sup.sex)
+  
+  ## SVA - Unsupervised Sex 
+  load("~/ewas3rdround/adj.residuals_sva.unsup.sex.Rdata")
+  err<-method_cor(adj.residuals.sva.unsup.sex, "SVA - Unsupervised Sex")
+  error_GS<-rbind(error_GS, err)
+  rm(adj.residuals.sva.unsup.sex)
+  
+  error_GS}
+
+
+## GS
+load("~/ewas3rdround/facs_pcs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+error_all<-cor_compare_all(method_adj, "FACS - PCA - Gold-Standard")
+
+## Decon PCA
+load("~/ewas3rdround/decon_pcs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-cor_compare_all(method_adj, "Deconvolution - PCA")
+error_all<-rbind(error_all, err)
+
+## Decon counts
+load("~/ewas3rdround/decon_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-cor_compare_all(method_adj, "Deconvolution - Drop One Cell Type")
+error_all<-rbind(error_all, err)
+
+## FACS drop
+load("~/ewas3rdround/facs_corrected_betas.Rdata")
+method_adj<-as.data.frame(adj.residuals)
+err<-cor_compare_all(method_adj, "FACS - Drop One Cell Type")
+error_all<-rbind(error_all, err)
+
+## Uncorrected
+load("~/ewas3rdround/WB_betas_BMIQ_comabt_alloutliersremoved.rdata")
+method_adj<-as.data.frame(validation_betas.combat)
+err<-cor_compare_all(method_adj, "Uncorrected")
+error_all<-rbind(error_all, err)
+
+## Refactor
+load("~/ewas3rdround/adj.residuals_refactor.Rdata")
+method_adj<-as.data.frame(adj.residuals.refactor)
+err<-cor_compare_all(method_adj, "ReFACTor")
+error_all<-rbind(error_all, err)
+
+## reffreecellmix
+load("~/ewas3rdround/adj.residuals_reffreecellmix.Rdata")
+method_adj<-as.data.frame(adj.residuals.reffreecellmix)
+err<-cor_compare_all(method_adj, "RefFreeCellMix")
+error_all<-rbind(error_all, err)
+
+## RUV GA
+load("~/ewas3rdround/adj.residuals_ruv.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.ruv.ga)
+err<-cor_compare_all(method_adj, "RUV - GA")
+error_all<-rbind(error_all, err)
+
+## RUV sex
+load("~/ewas3rdround/adj.residuals_ruv.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.ruv.sex)
+err<-cor_compare_all(method_adj, "RUV - Sex")
+error_all<-rbind(error_all, err)
+
+## SVA - Supervised GA 
+load("~/ewas3rdround/adj.residuals_sva.sup.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.sup.ga)
+err<-cor_compare_all(method_adj, "SVA - Supervised GA")
+error_all<-rbind(error_all, err)
+
+## SVA - Unsupervised GA 
+load("~/ewas3rdround/adj.residuals_sva.unsup.ga.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.unsup.ga)
+err<-cor_compare_all(method_adj, "SVA - Unsupervised GA")
+error_all<-rbind(error_all, err)
+
+## SVA - Supervised Sex 
+load("~/ewas3rdround/adj.residuals_sva.sup.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.sup.sex)
+err<-cor_compare_all(method_adj, "SVA - Supervised Sex")
+error_all<-rbind(error_all, err)
+
+## SVA - Unsupervised Sex 
+load("~/ewas3rdround/adj.residuals_sva.unsup.sex.Rdata")
+method_adj<-as.data.frame(adj.residuals.sva.unsup.sex)
+err<-cor_compare_all(method_adj, "SVA - Unsupervised Sex")
+error_all<-rbind(error_all, err)
+
+cor_all<-error_all
+save("cor_all", file="~/ewas3rdround/cor_all.RData")
