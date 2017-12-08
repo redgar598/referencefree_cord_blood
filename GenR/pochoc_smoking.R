@@ -13,6 +13,23 @@ library(ggplot2)
 library(reshape)
 library(RCurl)
 
+
+
+
+## load meta data
+meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC_including_smoking.dat", sep="\t", header=T)
+meta_cord<-meta_cord[which(meta_cord$Sample_ID%in%colnames(beta_variable)),]
+meta_cord<-meta_cord[match(colnames(beta_variable), meta_cord$Sample_ID),]
+identical(colnames(beta_variable), as.character(meta_cord$Sample_ID))
+
+meta_cord$SMOKE_SUSTAINED<-as.factor(meta_cord$SMOKE_SUSTAINED)
+
+meta_cord<-meta_cord[which(!(is.na(meta_cord$SMOKE_SUSTAINED))),]
+beta_variable<-beta_variable[,which(colnames(beta_variable)%in%meta_cord$Sample_ID)]
+
+meta_cord<-meta_cord[match(colnames(beta_variable), meta_cord$Sample_ID),]
+
+
 ## need mval for reference free
 Mval<-function(beta) log2(beta/(1-beta))
 
@@ -26,14 +43,8 @@ beta_variable<-t(apply(beta_variable,1, NA2med))
 mval_variable<-t(apply(mval_variable,1, NA2med))
 
 
-## load meta data
-meta_cord<-read.table("~/ewas3rdround/AnalysisfileUBC.dat", sep="\t", header=T)
-meta_cord<-meta_cord[which(meta_cord$Sample_ID%in%colnames(beta_variable)),]
-meta_cord<-meta_cord[match(colnames(beta_variable), meta_cord$Sample_ID),]
-identical(colnames(beta_variable), as.character(meta_cord$Sample_ID))
-
-meta_cord$GENDER<-as.factor(meta_cord$GENDER)
-
+meta_cord$Sample_ID<-as.character(meta_cord$Sample_ID)
+identical(colnames(mval_variable),meta_cord$Sample_ID)
 
 
 
@@ -41,8 +52,8 @@ meta_cord$GENDER<-as.factor(meta_cord$GENDER)
 library(sva)
 
 #Null model matrix must be nested in the full model matrix
-mod = model.matrix(~meta_cord$GENDER)
-mod0 = model.matrix(~1, data.frame(meta_cord$GENDER))
+mod = model.matrix(~meta_cord$SMOKE_SUSTAINED)
+mod0 = model.matrix(~1, data.frame(meta_cord$SMOKE_SUSTAINED))
 
 ## surrogates
 svobj = sva(as.matrix(mval_variable),mod,mod0,n.sv=5)
@@ -54,8 +65,8 @@ load("~/ewas3rdround/cord_cell_type_specific_probes.rdata")
 mval_diff_celltype<-mval_variable[which(rownames(mval_variable)%in%probes),]
 
 #Null model matrix must be nested in the full model matrix
-mod = model.matrix(~meta_cord$GENDER)
-mod0 = model.matrix(~1, data.frame(meta_cord$GENDER))
+mod = model.matrix(~meta_cord$SMOKE_SUSTAINED)
+mod0 = model.matrix(~1, data.frame(meta_cord$SMOKE_SUSTAINED))
 
 ## surrogates
 svobj = sva(as.matrix(mval_diff_celltype),mod,mod0,n.sv=5)
@@ -68,7 +79,7 @@ load("~/ewas3rdround/cord_cell_type_specific_probes.rdata")
 # which probes define cell type
 ctl<-(rownames(mval_variable)%in%probes)
 
-fit = RUVfit(data=mval_variable, design=as.numeric(meta_cord$GENDER),  ctl=ctl, k=5, method=c("ruv4"))
+fit = RUVfit(data=mval_variable, design=as.numeric(meta_cord$SMOKE_SUSTAINED),  ctl=ctl, k=5, method=c("ruv4"))
 ruv_smoke<-t(fit$W)
 
 save(sv_unsup_smoke, sv_sup_smoke, ruv_smoke, file="~/ewas3rdround/Components_smoke.Rdata")
